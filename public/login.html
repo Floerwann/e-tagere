@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - MyKollekt</title>
+    <style>
+        /* On remet juste le CSS nécessaire pour le login */
+        body { font-family: sans-serif; background-color: #1e1e2d; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-box { background: white; padding: 40px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .auth-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .auth-box button { width: 100%; padding: 10px; background: #5b9bd5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;}
+        .switch-link { margin-top: 15px; font-size: 0.9em; color: #666; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div id="loginBox" class="auth-box">
+        <h2 style="color:#333;">Bienvenue 👋</h2>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPass" placeholder="Mot de passe">
+        <button onclick="handleLogin()">Connexion</button>
+        <p class="switch-link" onclick="toggleAuth('register')">Pas de compte ? Créer un compte</p>
+    </div>
+
+    <div id="registerBox" class="auth-box" style="display:none;">
+        <h2 style="color:#333;">Inscription</h2>
+        <input type="text" id="regUser" placeholder="Ton Pseudo">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPass" placeholder="Mot de passe">
+        <button onclick="handleRegister()">Créer mon compte</button>
+        <p class="switch-link" onclick="toggleAuth('login')">Déjà un compte ? Se connecter</p>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        function toggleAuth(mode) {
+            document.getElementById('loginBox').style.display = (mode === 'login') ? 'block' : 'none';
+            document.getElementById('registerBox').style.display = (mode === 'register') ? 'block' : 'none';
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPass').value;
+            
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ email, password })
+                });
+
+                if(res.ok) {
+                    const user = await res.json();
+                    // 1. On sauvegarde l'utilisateur
+                    localStorage.setItem('myAppUser', JSON.stringify(user));
+                    // 2. LA REDIRECTION : On change de page !
+                    window.location.href = '/index.html'; 
+                } else {
+                    alert("Email ou mot de passe incorrect");
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('regUser').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPass').value;
+
+            if(!username || !email || !password) return alert("Remplis tout !");
+
+            try {
+                const res = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await res.json();
+
+                if(res.ok) {
+                    alert("Compte créé avec succès ! Connecte-toi maintenant.");
+                    toggleAuth('login'); // On renvoie l'utilisateur vers la connexion
+                } else {
+                    alert("Erreur : " + data.error);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Erreur de connexion au serveur");
+            }
+        }
+    </script>
+</body>
+</html>

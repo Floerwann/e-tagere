@@ -1,0 +1,83 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  username String
+  email    String  @unique // L'email doit être unique
+  password String  // Le mot de passe sera stocké crypté
+  movies   Movie[]
+  vinyls   Vinyl[]
+  tvshows  TvShow[]
+}
+
+model Movie {
+  id          Int      @id @default(autoincrement())
+  tmdbId      Int
+  title       String
+  posterPath  String?
+  overview    String?  @db.Text
+  releaseDate String?
+  
+  format      String   // Le format principal (La boîte)
+  
+  // NOUVEAU : Les disques inclus en plus
+  includeBluray Boolean @default(false) 
+  includeDvd    Boolean @default(false)
+
+  isSteelbook Boolean  @default(false)
+  isSlipcover Boolean  @default(false)
+  edition     String? 
+
+  addedAt     DateTime @default(now())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model TvShow {
+  id          Int      @id @default(autoincrement())
+  tmdbId      Int
+  title       String
+  posterPath  String?
+  backdropPath String?
+  overview    String?  @db.Text
+  releaseDate String?
+  
+  objectType  String   // "INTEGRALE", "SAISON", "COFFRET"
+  
+  // NOUVEAU : Champ dédié au numéro de la saison
+  seasonNumber Int?    // Le "?" veut dire que c'est optionnel (pas besoin pour une Intégrale)
+
+  format        String
+  includeBluray Boolean @default(false)
+  includeDvd    Boolean @default(false)
+  isSteelbook   Boolean @default(false)
+  isSlipcover   Boolean @default(false)
+  edition       String? 
+
+  addedAt     DateTime @default(now())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+// Ajoute le nouveau modèle à la fin du fichier
+model Vinyl {
+  id          Int      @id @default(autoincrement())
+  discogsId   Int      // L'ID unique chez Discogs
+  title       String
+  artist      String
+  coverUrl    String?
+  year        String?
+  addedAt     DateTime @default(now())
+  
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}

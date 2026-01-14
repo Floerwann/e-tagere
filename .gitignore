@@ -1,0 +1,13 @@
+# Dépendances (trop lourd)
+node_modules/
+
+# Variables d'environnement (Clés API, Mots de passe) -> TRÈS IMPORTANT
+.env
+
+# Base de données (si tu utilises SQLite)
+prisma/*.db
+prisma/*.db-journal
+
+# Système
+.DS_Store
+Thumbs.db

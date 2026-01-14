@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyKollekt - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="movieModal" class="modal-overlay">
+        <div class="modal">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <img src="" id="modalImg" class="modal-poster">
+            <div class="modal-info">
+                <h2 id="modalTitle" style="margin-bottom: 10px;">Titre</h2>
+                <p id="modalYear" style="color:#666; margin-bottom: 20px;">Année</p>
+                <p id="modalOverview" style="font-size: 0.9em; line-height: 1.5; color: #444;">Résumé...</p>
+
+                <div class="form-group">
+                    <h3 id="modalActionTitle">Ajouter à ma collection</h3>
+
+                    <div id="seriesTypeSection" style="display: none; margin-bottom: 15px;">
+    <div style="display: flex; gap: 10px;">
+        <div style="flex: 2;">
+            <div style="font-weight: bold; color: #5b9bd5;">Type d'objet :</div>
+            <select id="seriesObjectType" onchange="toggleSeasonNumberField()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                <option value="INTEGRALE">Intégrale (Série Complète)</option>
+                <option value="SAISON">Saison Individuelle</option>
+                <option value="COFFRET">Coffret Partiel</option>
+            </select>
+        </div>
+
+        <div id="seasonNumberContainer" style="flex: 1; display: none;">
+            <div style="font-weight: bold; color: #5b9bd5;">N° Saison :</div>
+            <input type="number" id="seasonNumberInput" placeholder="Ex: 1" min="0"
+                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+        </div>
+    </div>
+</div>
+                    
+                    <div style="margin-top: 10px; font-weight: bold;">Format Principal :</div>
+                    <div class="radio-group">
+                        <label><input type="radio" name="format" value="DVD" onchange="updateComboOptions()" checked> DVD</label>
+                        <label><input type="radio" name="format" value="BLURAY" onchange="updateComboOptions()"> Blu-ray</label>
+                        <label><input type="radio" name="format" value="4K" onchange="updateComboOptions()"> 4K UHD</label>
+                    </div>
+
+                    <div style="margin-top: 10px; font-weight: bold; font-size: 0.9em; color:#555;">Inclus aussi (Combo) :</div>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="checkIncludeBR"> + Blu-ray</label>
+                        <label><input type="checkbox" id="checkIncludeDVD"> + DVD</label>
+                    </div>
+
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #ddd;">
+
+                    <div style="font-weight: bold;">Finitions :</div>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="checkSteelbook"> Steelbook</label>
+                        <label><input type="checkbox" id="checkSlipcover"> Fourreau (Slipcover)</label>
+                    </div>
+
+                    <div style="margin-top: 15px;">
+                        <label style="font-weight:bold; font-size:0.9em;">Autre édition :</label>
+                        <input type="text" id="editionInput" placeholder="Ex: My Vault, Collector..." 
+                               style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+
+                    <button class="btn-save" id="btnSaveMovie">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="logo">📦 MyKollekt</div>
+        <div class="menu-item active" onclick="switchTab('movies', this)"><i class="fas fa-film"></i> Films</div>
+        <div class="menu-item" onclick="switchTab('series', this)"><i class="fas fa-tv"></i> Séries</div>
+        <div class="menu-item" onclick="switchTab('vinyls', this)"><i class="fas fa-record-vinyl"></i> Vinyles</div>
+        
+        <div class="menu-item mobile-logout" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Quitter
+        </div>
+
+        <div class="user-profile">
+            👤 Connecté : <strong id="usernameDisplay">...</strong>
+            <div style="font-size: 0.8em; margin-top:5px; cursor:pointer; color:#d9534f;" onclick="logout()">Se déconnecter</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="pageTitle">Mes Films</h2>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Rechercher...">
+                <button onclick="search()" class="btn-search"><i class="fas fa-search"></i></button>
+                <button onclick="resetView()" class="btn-collection"><i class="fas fa-layer-group"></i> Ma Collection</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <button id="mobileFilterBtn" class="btn-filter-mobile" onclick="toggleMobileFilters()">
+                <i class="fas fa-filter"></i> Filtrer & Trier
+            </button>
+
+            <div id="moviesToolbar" class="toolbar" style="display: none;">
+
+                
+
+                <select id="filterSeriesType" onchange="refreshFilters()" style="display:none;">
+                    <option value="all">Tout type</option>
+                    <option value="INTEGRALE">Intégrales</option>
+                    <option value="SAISON">Saisons</option>
+                    <option value="COFFRET">Coffrets</option>
+                </select>
+
+                <select id="filterFormat" onchange="refreshFilters()">
+                    <option value="all">Tous formats</option>
+                    <option value="4K">4K Ultra HD</option>
+                    <option value="BLURAY">Blu-ray</option>
+                    <option value="DVD">DVD</option>
+                </select>
+
+                <select id="sortSelect" onchange="refreshFilters()">
+                    <option value="date_desc">Ajout récent</option>
+                    <option value="date_asc">Ajout ancien</option>
+                    <option value="alpha_asc">A-Z</option>
+                    <option value="year_desc">Année (Récent)</option>
+                    <option value="year_asc">Année (Vieux)</option>
+                </select>
+
+                <label class="checkbox-container">
+                    <input type="checkbox" id="filterSteelbook" onchange="refreshFilters()">
+                    <span>Steelbook</span>
+                </label>
+
+                <span id="countBadge" class="count-badge" style="background:#5b9bd5; color:white;">Chargement...</span>
+            </div>
+
+            <h3 id="collectionTitle">Ma Collection</h3>
+            <div id="myCollection" class="grid"></div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/movies.js"></script>
+    <script src="js/series.js"></script>
+
+</body>
+</html>
