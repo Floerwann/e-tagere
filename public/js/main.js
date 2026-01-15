@@ -78,6 +78,7 @@ function switchTab(tab, element) {
 function loadContent() {
     if(currentTab === 'movies' && typeof loadMovies === 'function') loadMovies();
     else if(currentTab === 'series' && typeof loadSeries === 'function') loadSeries();
+    else if(currentTab === 'vinyls' && typeof loadVinyls === 'function') loadVinyls();
 }
 
 // --- 3. RECHERCHE & FILTRES ---
@@ -90,6 +91,7 @@ function search() {
 
     if(currentTab === 'movies' && typeof searchMovies === 'function') searchMovies(q); 
     else if (currentTab === 'series' && typeof searchSeries === 'function') searchSeries(q);
+    else if (currentTab === 'vinyls' && typeof searchVinyls === 'function') searchVinyls(q);
 }
 
 function refreshFilters() {
@@ -107,7 +109,9 @@ function closeModal() {
 
 window.onclick = function(event) {
     const modal = document.getElementById('movieModal');
+    const vinylModal = document.getElementById('vinylModal');
     if (event.target == modal) closeModal();
+    if (event.target == vinylModal && typeof closeVinylModal === 'function') closeVinylModal(); // <-- Nouveau
 }
 
 function resetView() {

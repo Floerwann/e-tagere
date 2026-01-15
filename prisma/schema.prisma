@@ -71,13 +71,30 @@ model TvShow {
 // Ajoute le nouveau modèle à la fin du fichier
 model Vinyl {
   id          Int      @id @default(autoincrement())
-  discogsId   Int      // L'ID unique chez Discogs
-  title       String
-  artist      String
-  coverUrl    String?
-  year        String?
-  addedAt     DateTime @default(now())
   
+  // INFOS PRINCIPALES (Viennent de la recherche)
+  tmdbId      Int?     // ID Discogs (on l'appelle tmdbId pour garder la logique, ou discogsId)
+  artist      String
+  title       String   // Nom de l'album
+  coverUrl    String?  // L'URL de l'image (modifiable par l'utilisateur !)
+  
+  // DATES
+  originalYear String? // Année de l'album (ex: 2013)
+  pressingYear String? // Année de TON disque (ex: 2023)
+
+  // INFOS TECHNIQUES
+  format      String   // LP, EP, Single, Coffret
+  rpm         String?  // 33T, 45T
+  color       String?  // Noir, Blanc, Splatter...
+  
+  // INFOS COLLECTIONNEUR
+  label       String?  // Columbia, Sony Music...
+  catalogNumber String? // Le code sur la tranche (ex: 19658775831)
+  condition   String?  // Mint, VG+, Good...
+  edition     String?  // "10th Anniversary", "Originale", "Japonaise"...
+
+  // SYSTEME
+  addedAt     DateTime @default(now())
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
 }

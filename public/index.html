@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyKollekt - Dashboard</title>
+    <title>E-Tagere</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -22,23 +22,23 @@
                     <h3 id="modalActionTitle">Ajouter à ma collection</h3>
 
                     <div id="seriesTypeSection" style="display: none; margin-bottom: 15px;">
-    <div style="display: flex; gap: 10px;">
-        <div style="flex: 2;">
-            <div style="font-weight: bold; color: #5b9bd5;">Type d'objet :</div>
-            <select id="seriesObjectType" onchange="toggleSeasonNumberField()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
-                <option value="INTEGRALE">Intégrale (Série Complète)</option>
-                <option value="SAISON">Saison Individuelle</option>
-                <option value="COFFRET">Coffret Partiel</option>
-            </select>
-        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 2;">
+                                <div style="font-weight: bold; color: #5b9bd5;">Type d'objet :</div>
+                                <select id="seriesObjectType" onchange="toggleSeasonNumberField()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                                    <option value="INTEGRALE">Intégrale (Série Complète)</option>
+                                    <option value="SAISON">Saison Individuelle</option>
+                                    <option value="COFFRET">Coffret Partiel</option>
+                                </select>
+                            </div>
 
-        <div id="seasonNumberContainer" style="flex: 1; display: none;">
-            <div style="font-weight: bold; color: #5b9bd5;">N° Saison :</div>
-            <input type="number" id="seasonNumberInput" placeholder="Ex: 1" min="0"
-                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
-        </div>
-    </div>
-</div>
+                            <div id="seasonNumberContainer" style="flex: 1; display: none;">
+                                <div style="font-weight: bold; color: #5b9bd5;">N° Saison :</div>
+                                <input type="number" id="seasonNumberInput" placeholder="Ex: 1" min="0"
+                                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px;">
+                            </div>
+                        </div>
+                    </div>
                     
                     <div style="margin-top: 10px; font-weight: bold;">Format Principal :</div>
                     <div class="radio-group">
@@ -73,8 +73,93 @@
         </div>
     </div>
 
+    <div id="vinylModal" class="modal-overlay">
+        <div class="modal">
+            <button class="close-modal" onclick="closeVinylModal()">×</button>
+            
+            <div style="width: 40%; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
+                <img src="" id="vinylModalImg" style="width: 100%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 2;">
+                <div style="color: #666; font-size: 0.8em; margin-top: 15px; text-align: center;">
+                    URL de l'image (Modifiable) :
+                    <input type="text" id="vinylCoverInput" onchange="previewVinylImage()" 
+                           style="width: 100%; background: #333; border: 1px solid #555; color: white; padding: 5px; margin-top: 5px; font-size: 0.9em;">
+                </div>
+            </div>
+
+            <div class="modal-info" style="width: 60%;">
+                <h2 id="vinylModalTitle" style="margin-bottom: 5px;">Artiste - Album</h2>
+                <p id="vinylModalSubtitle" style="color:#666; margin-bottom: 20px;">Année Originale : <span id="vinylOriginalYear">...</span></p>
+
+                <div class="form-group">
+                    <h3 id="vinylActionTitle">Ajouter ce Vinyle</h3>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">Année Pressage</label>
+                            <input type="text" id="vinylPressingYear" placeholder="Ex: 2023" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">Label</label>
+                            <input type="text" id="vinylLabel" placeholder="Ex: Columbia" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">Format</label>
+                            <select id="vinylFormat" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="LP">LP (Album 33T)</option>
+                                <option value="EP">EP (Maxi)</option>
+                                <option value="Single">Single (45T)</option>
+                                <option value="Coffret">Coffret</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">Vitesse</label>
+                            <select id="vinylRpm" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="33T">33 Tours</option>
+                                <option value="45T">45 Tours</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">Couleur</label>
+                            <input type="text" id="vinylColor" placeholder="Ex: Noir, Rouge..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">État (Condition)</label>
+                            <select id="vinylCondition" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                                <option value="M">Mint (Neuf Scellé)</option>
+                                <option value="NM">Near Mint (Comme Neuf)</option>
+                                <option value="VG+">VG+ (Très Bon)</option>
+                                <option value="VG">VG (Bon)</option>
+                                <option value="G">G (Moyen)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">N° Catalogue</label>
+                            <input type="text" id="vinylCatNo" placeholder="Sur la tranche..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 0.8em; font-weight: bold;">Édition</label>
+                            <input type="text" id="vinylEdition" placeholder="Ex: Originale, Japonaise..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                        </div>
+                    </div>
+
+                    <button class="btn-save" id="btnSaveVinyl" style="background: #e74c3c;">Ajouter à ma Discothèque</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <div class="sidebar">
-        <div class="logo">📦 MyKollekt</div>
+        <div class="logo">📦 E-Tagere</div>
         <div class="menu-item active" onclick="switchTab('movies', this)"><i class="fas fa-film"></i> Films</div>
         <div class="menu-item" onclick="switchTab('series', this)"><i class="fas fa-tv"></i> Séries</div>
         <div class="menu-item" onclick="switchTab('vinyls', this)"><i class="fas fa-record-vinyl"></i> Vinyles</div>
@@ -89,6 +174,7 @@
         </div>
     </div>
 
+
     <div class="main-content">
         <div class="top-bar">
             <h2 id="pageTitle">Mes Films</h2>
@@ -100,13 +186,12 @@
         </div>
 
         <div class="content-area">
+            
             <button id="mobileFilterBtn" class="btn-filter-mobile" onclick="toggleMobileFilters()">
                 <i class="fas fa-filter"></i> Filtrer & Trier
             </button>
 
             <div id="moviesToolbar" class="toolbar" style="display: none;">
-
-                
 
                 <select id="filterSeriesType" onchange="refreshFilters()" style="display:none;">
                     <option value="all">Tout type</option>
@@ -135,7 +220,7 @@
                     <span>Steelbook</span>
                 </label>
 
-                <span id="countBadge" class="count-badge" style="background:#5b9bd5; color:white;">Chargement...</span>
+                <span id="countBadge" class="count-badge">Chargement...</span>
             </div>
 
             <h3 id="collectionTitle">Ma Collection</h3>
@@ -143,9 +228,9 @@
         </div>
     </div>
 
+
     <script src="js/main.js"></script>
     <script src="js/movies.js"></script>
     <script src="js/series.js"></script>
-
-</body>
+    <script src="js/vinyls.js"></script> </body>
 </html>

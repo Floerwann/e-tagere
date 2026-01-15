@@ -413,3 +413,14 @@
 .overlay-INT { background: #e67e22; } /* Orange pour Intégrale */
 .overlay-SAISON { background: #3498db; } /* Bleu pour Saison */
 .overlay-COFFRET { background: #9b59b6; } /* Violet pour Coffret */
+
+/* --- STYLE SPÉCIFIQUE VINYLES --- */
+
+/* --- FORMAT VINYLE CARRÉ --- */
+.card .vinyl-cover-img {
+    height: auto !important; /* Annule la hauteur fixe des films (240px) */
+    aspect-ratio: 1 / 1;     /* Force le ratio carré parfait (Largeur = Hauteur) */
+    width: 100%;             /* Prend toute la largeur de la carte */
+    object-fit: cover;       /* Remplit bien le carré */
+    border-bottom: 1px solid #eee; /* Petite séparation esthétique avec le bas */
+}

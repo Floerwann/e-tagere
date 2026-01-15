@@ -166,6 +166,9 @@ function openEditSeriesModal(localId) {
     const imagePath = s.backdropPath || s.posterPath;
     document.getElementById('modalImg').src = `https://image.tmdb.org/t/p/w780${imagePath}`;
 
+    document.getElementById('modalOverview').innerText = s.overview || '';
+    document.getElementById('modalYear').innerText = s.releaseDate ? s.releaseDate.split('-')[0] : '';
+
     document.getElementById('seriesTypeSection').style.display = 'block';
     
     // Remplissage des champs
