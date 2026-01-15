@@ -2,39 +2,125 @@ let allVinylsData = [];
 let currentVinylDiscogsData = null; 
 let editingVinylId = null;
 
-// --- 1. CHARGEMENT ---
+// ==========================================
+// 1. CHARGEMENT & FILTRES
+// ==========================================
+
 async function loadVinyls() {
     // UI Setup
     document.getElementById('collectionTitle').innerText = "Ma Discothèque";
-    document.getElementById('moviesToolbar').style.display = 'none'; // On cache les filtres Films/Séries pour l'instant
+    // Note : L'affichage de la toolbar 'vinylsToolbar' est géré par main.js (switchTab)
 
     try {
         const res = await fetch(`${API_URL}/vinyls?userId=${currentUser.id}`);
         allVinylsData = await res.json();
-        renderVinylsGrid(allVinylsData);
+        
+        // On applique les filtres tout de suite
+        filterVinyls();
+        
     } catch (e) { console.error("Erreur chargement vinyles", e); }
 }
 
-// --- 2. AFFICHAGE (Version Carrée Propre) ---
+// --- FONCTION DE FILTRAGE BLINDÉE ---
+function filterVinyls() {
+    // 1. Récupération des valeurs
+    const formatVal = document.getElementById('filterVinylFormat').value;
+    const rpmVal = document.getElementById('filterVinylRpm').value;
+    const sortVal = document.getElementById('sortVinylSelect').value;
+    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+    // 2. Filtrage
+    let filtered = allVinylsData.filter(v => {
+        const matchesSearch = (v.artist || "").toLowerCase().includes(searchQuery) || (v.title || "").toLowerCase().includes(searchQuery);
+        const matchesFormat = (formatVal === 'all') ? true : (v.format === formatVal);
+        const matchesRpm = (rpmVal === 'all') ? true : (v.rpm === rpmVal);
+        return matchesSearch && matchesFormat && matchesRpm;
+    });
+
+    // --- FONCTION "SHERLOCK" POUR TROUVER L'ANNÉE ---
+    function getVinylYear(item) {
+        // Liste de tous les endroits possibles où l'année peut se cacher
+        // On convertit tout en texte pour éviter les bugs
+        const candidates = [
+            item.originalYear,   // Nom qu'on utilise à la sauvegarde
+            item.year,           // Nom souvent utilisé par Discogs
+            item.pressingYear,   // Année de pressage
+            item.released,       // Autre nom Discogs
+            item.date            // Au cas où
+        ];
+
+        for (let val of candidates) {
+            if (!val) continue; // Si vide, on passe au suivant
+
+            // On cherche un nombre de 4 chiffres commençant par 19 ou 20
+            // Ex: Trouve "1999" dans "c. 1999" ou "2023-05-01"
+            const match = String(val).match(/(19|20)\d{2}/);
+            
+            if (match) {
+                return parseInt(match[0]); // On renvoie le chiffre (ex: 1999)
+            }
+        }
+
+        return 0; // Si on a rien trouvé du tout
+    }
+    // -------------------------------------------------------
+
+    // 3. Tri
+    filtered.sort((a, b) => {
+        // Date d'ajout (ID)
+        if (sortVal === 'date_desc') return b.id - a.id;
+        if (sortVal === 'date_asc') return a.id - b.id;
+        
+        // Alphabétique Artiste
+        if (sortVal === 'artist_asc') return (a.artist || "").localeCompare(b.artist || "");
+        if (sortVal === 'artist_desc') return (b.artist || "").localeCompare(a.artist || "");
+        
+        // --- TRI PAR ANNÉE ---
+        const yearA = getVinylYear(a);
+        const yearB = getVinylYear(b);
+
+        // Si tu veux voir ce qui se passe, fais F12 > Console :
+        // console.log(`Comparaison: ${a.title} (${yearA}) vs ${b.title} (${yearB})`);
+        
+        if (sortVal === 'year_desc') return yearB - yearA; // Récent -> Vieux
+        if (sortVal === 'year_asc') return yearA - yearB; // Vieux -> Récent
+        
+        return 0;
+    });
+
+    // 4. Affichage
+    renderVinylsGrid(filtered);
+    
+    const count = filtered.length;
+    const label = count > 1 ? 'Vinyles' : 'Vinyle';
+    const badge = document.getElementById('vinylCountBadge');
+    if(badge) badge.innerText = `${count} ${label}`;
+}
+
+// ==========================================
+// 2. AFFICHAGE (GRILLE)
+// ==========================================
+
 function renderVinylsGrid(list) {
     const div = document.getElementById('myCollection');
     div.innerHTML = '';
     
-    if(list.length === 0) { div.innerHTML = '<p style="padding:20px; color:#666">Aucun vinyle.</p>'; return; }
+    if(list.length === 0) { div.innerHTML = '<p style="padding:20px; color:#666">Aucun vinyle trouvé.</p>'; return; }
 
     list.forEach(v => {
-        // Badges Vinyle
+        // Création des badges
         let badges = `<span class="badge" style="background:#333">${v.format}</span>`;
         badges += `<span class="badge" style="background:#666">${v.rpm}</span>`;
         
+        // Badge État (Condition)
         if(v.condition === 'M' || v.condition === 'NM') badges += `<span class="badge" style="background:#27ae60">${v.condition}</span>`;
         else badges += `<span class="badge" style="background:#f39c12">${v.condition || '?'}</span>`;
         
+        // Badge Couleur (Sauf si Noir)
         if(v.color && v.color.toLowerCase() !== 'noir' && v.color !== '') {
             badges += `<span class="badge" style="background:#9b59b6">${v.color}</span>`;
         }
 
-        // Image
         const imgSrc = v.coverUrl || 'https://via.placeholder.com/500?text=No+Cover';
 
         div.innerHTML += `
@@ -53,7 +139,10 @@ function renderVinylsGrid(list) {
     });
 }
 
-// --- 3. RECHERCHE DISCOGS ---
+// ==========================================
+// 3. RECHERCHE DISCOGS
+// ==========================================
+
 async function searchVinyls(query) {
     const div = document.getElementById('myCollection');
     document.getElementById('collectionTitle').innerText = `Recherche Discogs "${query}"`;
@@ -77,7 +166,7 @@ async function searchVinyls(query) {
             card.className = 'card';
             card.onclick = () => openAddVinylModal(item);
             
-            // ICI : On a ajouté la classe 'vinyl-cover-img' pour forcer le carré !
+            // On force le carré aussi pour la recherche
             card.innerHTML = `
                 <img src="${img}" class="vinyl-cover-img"> 
                 <div class="card-body" style="background:#f4f4f4">
@@ -93,13 +182,15 @@ async function searchVinyls(query) {
     }
 }
 
-// --- 4. MODALES ---
+// ==========================================
+// 4. MODALES (AJOUT / ÉDITION)
+// ==========================================
 
 async function openAddVinylModal(discogsItem) {
     editingVinylId = null;
     currentVinylDiscogsData = discogsItem;
 
-    // A. PRÉ-AFFICHAGE
+    // A. PRÉ-AFFICHAGE BASIQUE
     let artist = "Artiste Inconnu";
     let title = discogsItem.title;
     if (discogsItem.title.includes(' - ')) {
@@ -130,13 +221,13 @@ async function openAddVinylModal(discogsItem) {
     
     document.getElementById('vinylModal').style.display = 'flex';
 
-    // C. APPEL API
+    // C. APPEL API DÉTAILLÉ
     try {
         if (discogsItem.type === 'release') {
             const res = await fetch(`${API_URL}/vinyls/details/${discogsItem.id}`);
             if (res.ok) {
                 const details = await res.json();
-                fillDetailedForm(details, discogsItem);
+                fillDetailedForm(details, discogsItem); // SUCCÈS : On remplit
                 return; 
             }
         }
@@ -144,11 +235,11 @@ async function openAddVinylModal(discogsItem) {
         console.log("Erreur détails, passage en mode basique.");
     }
 
-    // D. PLAN B
+    // D. PLAN B (Si échec)
     fillBasicForm(discogsItem);
 }
 
-// --- FONCTION 1 : Remplissage Détaillé ---
+// --- UTILITAIRE 1 : Remplissage Détaillé ---
 function fillDetailedForm(details, basicItem) {
     
     // 1. FORMAT & COULEUR
@@ -167,10 +258,10 @@ function fillDetailedForm(details, basicItem) {
 
         const rawText = fmt.text || ""; 
         
-        // TA LISTE NOIRE EST ICI (Ajoutes-y tes mots)
+        // TA LISTE NOIRE EST ICI
         const ignored = [
             'Vinyl', 'LP', 'Album', 'Reissue', 'Repress', 'Stereo', '33 RPM', '45 RPM',
-            'Gatefold', 'Club Edition', 'Remastered', 'Limited Edition', 'Deluxe'
+            'Gatefold', 'Club Edition', 'Remastered', 'Limited Edition', 'Deluxe', 'Enhanced', 'All Media'
         ];
         
         let colorParts = [];
@@ -181,7 +272,7 @@ function fillDetailedForm(details, basicItem) {
         document.getElementById('vinylColor').value = finalInfo;
     }
 
-    // 2. ÉTAT PAR DÉFAUT (ICI)
+    // 2. ÉTAT PAR DÉFAUT
     document.getElementById('vinylCondition').value = 'NM'; 
 
     // 3. DATES & LABELS
@@ -195,11 +286,9 @@ function fillDetailedForm(details, basicItem) {
     enableSaveButton(details.artists_sort || basicItem.title.split(' - ')[0], details.title);
 }
 
-// --- FONCTION 2 : Remplissage Basique ---
+// --- UTILITAIRE 2 : Remplissage Basique ---
 function fillBasicForm(item) {
     document.getElementById('vinylColor').value = "Noir";
-    
-    // ÉTAT PAR DÉFAUT (ICI AUSSI)
     document.getElementById('vinylCondition').value = 'NM'; 
     
     document.getElementById('vinylPressingYear').value = item.year || '';
@@ -211,7 +300,7 @@ function fillBasicForm(item) {
     enableSaveButton(artist, item.title.split(' - ')[1]);
 }
 
-// --- UTILITAIRE POUR DÉBLOQUER ---
+// --- UTILITAIRE 3 : Débloquer le bouton ---
 function enableSaveButton(artist, title) {
     const btnSave = document.getElementById('btnSaveVinyl');
     btnSave.innerText = "Ajouter à ma Discothèque";
@@ -223,7 +312,7 @@ function enableSaveButton(artist, title) {
     btnSave.onclick = () => saveVinyl(artist, title);
 }
 
-// B. MODIFICATION
+// --- MODIFICATION D'UN VINYLE EXISTANT ---
 function openEditVinylModal(localId) {
     const v = allVinylsData.find(i => i.id === localId);
     if(!v) return;
@@ -233,6 +322,12 @@ function openEditVinylModal(localId) {
     document.getElementById('vinylModalTitle').innerText = `${v.artist} - ${v.title}`;
     document.getElementById('vinylActionTitle').innerText = "Modifier le Vinyle";
     document.getElementById('btnSaveVinyl').innerText = "Mettre à jour";
+    
+    // Pas de blocage ici car on a déjà les données
+    const btnSave = document.getElementById('btnSaveVinyl');
+    btnSave.disabled = false;
+    btnSave.style.opacity = "1";
+    btnSave.style.cursor = "pointer";
 
     document.getElementById('vinylModalImg').src = v.coverUrl;
     document.getElementById('vinylCoverInput').value = v.coverUrl;
@@ -253,13 +348,20 @@ function openEditVinylModal(localId) {
     document.getElementById('vinylModal').style.display = 'flex';
 }
 
-// C. SAUVEGARDE
+// ==========================================
+// 5. SAUVEGARDE & SUPPRESSION
+// ==========================================
+
+// ==========================================
+// 5. SAUVEGARDE & SUPPRESSION
+// ==========================================
+
 async function saveVinyl(artistName, albumTitle) {
     const bodyData = {
         userId: currentUser.id,
         artist: artistName,
         title: albumTitle,
-        coverUrl: document.getElementById('vinylCoverInput').value, // L'URL modifiée par l'user
+        coverUrl: document.getElementById('vinylCoverInput').value,
         originalYear: document.getElementById('vinylOriginalYear').innerText,
         
         pressingYear: document.getElementById('vinylPressingYear').value,
@@ -285,18 +387,50 @@ async function saveVinyl(artistName, albumTitle) {
         method = 'PUT';
     }
 
-    const res = await fetch(url, {
-        method: method,
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(bodyData)
-    });
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(bodyData)
+        });
 
-    if(res.ok) {
-        closeVinylModal();
-        loadVinyls(); // Rechargement de la grille
-    } else {
-        alert("Erreur sauvegarde vinyle");
+        if(res.ok) {
+            closeVinylModal();
+            
+            // --- CORRECTION ICI ---
+            if (editingVinylId) {
+                // Si on modifie, on garde le contexte actuel (filtres, recherche...)
+                loadVinyls(); 
+            } else {
+                // Si on vient d'ajouter (depuis la recherche), on remet tout à zéro !
+                // Cela vide la barre de recherche et affiche toute la collection.
+                resetView(); 
+            }
+            // ---------------------
+
+            showToast("Vinyle enregistré avec succès !", "success");
+        } else {
+            showToast("Erreur lors de la sauvegarde.", "error");
+        }
+    } catch(e) {
+        showToast("Erreur de connexion.", "error");
     }
+}
+
+// SUPPRESSION (Avec la belle modale de main.js)
+function deleteVinyl(id) {
+    openConfirmModal(
+        "Voulez-vous vraiment supprimer ce vinyle de votre collection ?", 
+        async () => {
+            try {
+                await fetch(`${API_URL}/vinyls/${id}`, { method: 'DELETE' });
+                resetView();
+                showToast("Vinyle supprimé.", "info");
+            } catch (e) {
+                showToast("Erreur lors de la suppression.", "error");
+            }
+        }
+    );
 }
 
 // UTILITAIRES
@@ -308,10 +442,4 @@ function closeVinylModal() {
 function previewVinylImage() {
     const url = document.getElementById('vinylCoverInput').value;
     if(url) document.getElementById('vinylModalImg').src = url;
-}
-
-async function deleteVinyl(id) {
-    if(!confirm('Supprimer ce vinyle ?')) return;
-    await fetch(`${API_URL}/vinyls/${id}`, { method: 'DELETE' });
-    loadVinyls();
 }

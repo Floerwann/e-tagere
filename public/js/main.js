@@ -56,8 +56,14 @@ function switchTab(tab, element) {
 
     // GESTION TOOLBAR FILTRES
     const toolbar = document.getElementById('moviesToolbar');
+    const vinylsToolbar = document.getElementById('vinylsToolbar');
     const seriesTypeSelect = document.getElementById('filterSeriesType');
 
+    // IMPORTANT : On cache TOUT d'abord pour éviter les superpositions
+    if (toolbar) toolbar.style.display = 'none';
+    if (vinylsToolbar) vinylsToolbar.style.display = 'none';
+
+    // Ensuite, on affiche seulement ce qu'il faut
     if (tab === 'movies') {
         if (toolbar) toolbar.style.display = 'flex';
         if (seriesTypeSelect) seriesTypeSelect.style.display = 'none'; 
@@ -68,8 +74,8 @@ function switchTab(tab, element) {
         if (seriesTypeSelect) seriesTypeSelect.style.display = 'block';
         document.getElementById('filterFormat').value = 'all';
     } 
-    else {
-        if (toolbar) toolbar.style.display = 'none';
+    else if (tab === 'vinyls') {
+        if (vinylsToolbar) vinylsToolbar.style.display = 'flex';
     }
 
     loadContent();
@@ -83,21 +89,58 @@ function loadContent() {
 
 // --- 3. RECHERCHE & FILTRES ---
 
+// --- 3. RECHERCHE & FILTRES ---
+
 function search() {
     const q = document.getElementById('searchInput').value;
     
-    // Si vide, on recharge la collection normale
-    if (!q) { loadContent(); return; }
+    // Si la recherche est vide, on réinitialise la vue normale
+    if (!q) { 
+        resetView(); 
+        return; 
+    }
+
+    // --- NOUVEAU : ON CACHE LES BARRES D'OUTILS PENDANT LA RECHERCHE ---
+    const moviesToolbar = document.getElementById('moviesToolbar');
+    const vinylsToolbar = document.getElementById('vinylsToolbar');
+    
+    if (moviesToolbar) moviesToolbar.style.display = 'none';
+    if (vinylsToolbar) vinylsToolbar.style.display = 'none';
+    // -------------------------------------------------------------------
 
     if(currentTab === 'movies' && typeof searchMovies === 'function') searchMovies(q); 
     else if (currentTab === 'series' && typeof searchSeries === 'function') searchSeries(q);
     else if (currentTab === 'vinyls' && typeof searchVinyls === 'function') searchVinyls(q);
 }
 
+function resetView() {
+    document.getElementById('searchInput').value = ''; // Vide la recherche
+    
+    // --- NOUVEAU : ON RÉAFFICHE LA BONNE BARRE D'OUTILS ---
+    const moviesToolbar = document.getElementById('moviesToolbar');
+    const vinylsToolbar = document.getElementById('vinylsToolbar');
+    
+    // 1. On cache tout par sécurité
+    if (moviesToolbar) moviesToolbar.style.display = 'none';
+    if (vinylsToolbar) vinylsToolbar.style.display = 'none';
+
+    // 2. On réaffiche seulement celle de l'onglet actif
+    if (currentTab === 'movies' || currentTab === 'series') {
+        if (moviesToolbar) moviesToolbar.style.display = 'flex';
+    } 
+    else if (currentTab === 'vinyls') {
+        if (vinylsToolbar) vinylsToolbar.style.display = 'flex';
+    }
+    // -------------------------------------------------------
+
+    loadContent(); // Recharge la collection
+}
+
 function refreshFilters() {
     if (currentTab === 'movies' && typeof filterMovies === 'function') filterMovies();
     else if (currentTab === 'series' && typeof filterSeries === 'function') filterSeries();
-}
+    else if (currentTab === 'vinyls' && typeof filterVinyls === 'function') filterVinyls();
+} // <--- C'ÉTAIT ICI L'ERREUR, il manquait l'accolade fermante !
 
 // --- 4. GESTION MODALES ---
 
@@ -105,18 +148,6 @@ function closeModal() {
     document.getElementById('movieModal').style.display = 'none';
     // Reset des variables d'édition globales
     if(typeof editingMovieId !== 'undefined') editingMovieId = null;
-}
-
-window.onclick = function(event) {
-    const modal = document.getElementById('movieModal');
-    const vinylModal = document.getElementById('vinylModal');
-    if (event.target == modal) closeModal();
-    if (event.target == vinylModal && typeof closeVinylModal === 'function') closeVinylModal(); // <-- Nouveau
-}
-
-function resetView() {
-    document.getElementById('searchInput').value = ''; // Vide la recherche
-    loadContent(); // Recharge la collection
 }
 
 // --- 5. UTILITAIRES ---
@@ -147,6 +178,86 @@ function toggleMobileFilters() {
     const toolbar = document.getElementById('moviesToolbar');
     if(toolbar) toolbar.classList.toggle('mobile-open');
 }
+
+// --- 6. SYSTÈME DE NOTIFICATIONS (TOASTS) ---
+function showToast(message, type = 'success') {
+    // Crée le conteneur s'il n'existe pas encore
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    // Crée la bulle
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Icône selon le type
+    let icon = '<i class="fas fa-check-circle"></i>';
+    if(type === 'error') icon = '<i class="fas fa-exclamation-circle"></i>';
+    if(type === 'info') icon = '<i class="fas fa-info-circle"></i>';
+
+    toast.innerHTML = `${icon} <span>${message}</span>`;
+    
+    container.appendChild(toast);
+
+    // Supprime la bulle après 3 secondes
+    setTimeout(() => {
+        toast.style.animation = "fadeOut 0.5s forwards";
+        setTimeout(() => toast.remove(), 500); // Attend la fin de l'anim
+    }, 3000);
+}
+
+// --- 7. MODALE DE CONFIRMATION ---
+let currentConfirmCallback = null;
+
+function openConfirmModal(message, onConfirm) {
+    // 1. On remplit le message
+    document.getElementById('confirmMessage').innerText = message;
+    
+    // 2. On stocke l'action à faire si l'utilisateur dit OUI
+    currentConfirmCallback = onConfirm;
+    
+    // 3. On configure le bouton "Supprimer"
+    const btnConfirm = document.getElementById('btnConfirmAction');
+    btnConfirm.onclick = function() {
+        if (currentConfirmCallback) currentConfirmCallback();
+        closeConfirmModal();
+    };
+
+    // 4. On affiche
+    document.getElementById('confirmModal').style.display = 'flex';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    currentConfirmCallback = null;
+}
+
+// --- GESTION UNIQUE DES FERMETURES AU CLIC ---
+window.onclick = function(event) {
+    const movieModal = document.getElementById('movieModal');
+    const vinylModal = document.getElementById('vinylModal');
+    const confirmModal = document.getElementById('confirmModal');
+
+    // 1. Fermeture Modale FILM
+    if (event.target == movieModal) {
+        closeModal(); 
+    }
+
+    // 2. Fermeture Modale VINYLE
+    if (event.target == vinylModal && typeof closeVinylModal === 'function') {
+        closeVinylModal(); 
+    }
+
+    // 3. Fermeture Modale CONFIRMATION
+    if (event.target == confirmModal) {
+        closeConfirmModal(); 
+    }
+}
+
+// --- 8. LOGOUT ---
 
 function logout() {
     localStorage.removeItem('myAppUser');

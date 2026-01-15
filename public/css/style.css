@@ -44,7 +44,15 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
         .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; position: relative; }
         .card:hover { transform: translateY(-5px); }
-        .card img { width: 100%; height: 240px; object-fit: cover; cursor: pointer; } /* Image cliquable */
+        /* --- STYLE GÉNÉRAL DES IMAGES (Films & Séries) --- */
+        .card img { 
+            width: 100%; 
+            height: auto;           /* La hauteur s'adapte automatiquement */
+            aspect-ratio: 2 / 3;    /* 📏 FORCE LE FORMAT AFFICHE DE CINÉMA (Portrait) */
+            object-fit: cover;      /* Remplit bien la carte sans déformer l'image */
+            cursor: pointer; 
+            border-bottom: 1px solid #eee; /* Petite séparation propre avec le texte */
+        }
         .card-body { padding: 10px; }
         .card-title { font-weight: bold; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
@@ -423,4 +431,45 @@
     width: 100%;             /* Prend toute la largeur de la carte */
     object-fit: cover;       /* Remplit bien le carré */
     border-bottom: 1px solid #eee; /* Petite séparation esthétique avec le bas */
+}
+
+/* --- NOTIFICATIONS TOAST --- */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    min-width: 280px;
+    animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Petit effet rebond */
+}
+
+/* Couleurs selon le type */
+.toast.success { background: #2ecc71; } /* Vert Émeraude */
+.toast.error   { background: #e74c3c; } /* Rouge */
+.toast.info    { background: #3498db; } /* Bleu */
+
+.toast i { font-size: 1.2em; }
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateX(100%); }
 }

@@ -70,10 +70,23 @@ function filterMovies() {
 
     // Tri
     filtered.sort((a, b) => {
-        if (sortVal === 'date_desc') return new Date(b.addedAt) - new Date(a.addedAt);
-        if (sortVal === 'date_asc') return new Date(a.addedAt) - new Date(b.addedAt);
+        // Tri par Date d'ajout (ID)
+        if (sortVal === 'date_desc') return b.id - a.id;
+        if (sortVal === 'date_asc') return a.id - b.id;
+        
+        // Tri Alphabétique
         if (sortVal === 'alpha_asc') return a.title.localeCompare(b.title);
-        if (sortVal === 'year_desc') return (b.releaseDate || '').localeCompare(a.releaseDate || '');
+        if (sortVal === 'alpha_desc') return b.title.localeCompare(a.title);
+
+        // --- CORRECTION ROBUSTE ANNÉE ---
+        // On prend les 4 premiers chiffres (ex: "2023-05-12" -> 2023)
+        // Si pas de date, on met 0
+        const yearA = a.releaseDate ? parseInt(a.releaseDate.toString().substring(0, 4)) : 0;
+        const yearB = b.releaseDate ? parseInt(b.releaseDate.toString().substring(0, 4)) : 0;
+
+        if (sortVal === 'year_desc') return yearB - yearA; // Du plus grand au plus petit
+        if (sortVal === 'year_asc') return yearA - yearB; // Du plus petit au plus grand
+        
         return 0;
     });
 
@@ -201,20 +214,38 @@ async function saveMovie() {
         bodyData.backdropPath = currentMovieMediaData.backdrop_path;
     }
 
-    const res = await fetch(url, {
-        method: method,
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(bodyData)
-    });
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(bodyData)
+        });
 
-    if(res.ok) {
-        closeModal();
-        if(editingMovieId) loadMovies(); else resetView();
-    } else { alert("Erreur sauvegarde"); }
+        if(res.ok) {
+            closeModal();
+            if(editingMovieId) loadMovies(); else resetView();
+            // NOUVEAU : Notification Toast
+            showToast("Film enregistré avec succès !", "success");
+        } else { 
+            showToast("Erreur lors de la sauvegarde.", "error");
+        }
+    } catch(e) {
+        showToast("Erreur de connexion.", "error");
+    }
 }
 
-async function deleteMovie(id) {
-    if(!confirm('Supprimer ?')) return;
-    await fetch(`${API_URL}/movies/${id}`, { method: 'DELETE' });
-    loadMovies();
+// SUPPRESSION (Avec belle modale)
+function deleteMovie(id) {
+    openConfirmModal(
+        "Voulez-vous vraiment supprimer ce film de votre collection ?", 
+        async () => {
+            try {
+                await fetch(`${API_URL}/movies/${id}`, { method: 'DELETE' });
+                resetView();
+                showToast("Film supprimé.", "info");
+            } catch (e) {
+                showToast("Erreur lors de la suppression.", "error");
+            }
+        }
+    );
 }

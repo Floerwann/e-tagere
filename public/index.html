@@ -210,7 +210,8 @@
                 <select id="sortSelect" onchange="refreshFilters()">
                     <option value="date_desc">Ajout récent</option>
                     <option value="date_asc">Ajout ancien</option>
-                    <option value="alpha_asc">A-Z</option>
+                    <option value="alpha_asc">Alphabétique (A-Z)</option>
+                    <option value="alpha_desc">Alphabétique (Z-A)</option>
                     <option value="year_desc">Année (Récent)</option>
                     <option value="year_asc">Année (Vieux)</option>
                 </select>
@@ -223,14 +224,58 @@
                 <span id="countBadge" class="count-badge">Chargement...</span>
             </div>
 
+            <div id="vinylsToolbar" class="toolbar" style="display: none;">
+                <select id="filterVinylFormat" onchange="refreshFilters()">
+                    <option value="all">Tous formats</option>
+                    <option value="LP">LP (Album)</option>
+                    <option value="EP">EP (Maxi)</option>
+                    <option value="Single">Single</option>
+                    <option value="Coffret">Coffret</option>
+                </select>
+
+                <select id="filterVinylRpm" onchange="refreshFilters()">
+                    <option value="all">Toutes vitesses</option>
+                    <option value="33T">33 Tours</option>
+                    <option value="45T">45 Tours</option>
+                </select>
+
+                <select id="sortVinylSelect" onchange="refreshFilters()">
+                    <option value="date_desc">Ajout récent</option>
+                    <option value="date_asc">Ajout ancien</option>
+                    <option value="artist_asc">Artiste (A-Z)</option>
+                    <option value="artist_desc">Artiste (Z-A)</option>
+                    <option value="year_desc">Année (Récent)</option>
+                    <option value="year_asc">Année (Vieux)</option>
+                </select>
+
+                <span id="vinylCountBadge" class="count-badge">Chargement...</span>
+            </div>
+
+
+
             <h3 id="collectionTitle">Ma Collection</h3>
             <div id="myCollection" class="grid"></div>
         </div>
     </div>
 
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+    <div class="modal" style="max-width: 400px; height: auto; flex-direction: column; padding: 30px; text-align: center;">
+        
+        <h3 id="confirmTitle" style="margin-bottom: 10px;">Confirmation</h3>
+        <p id="confirmMessage" style="margin-bottom: 25px; color: #666; line-height: 1.4;">Êtes-vous sûr ?</p>
+        
+        <div class="modal-actions" style="display: flex; justify-content: center; gap: 15px;">
+            <button class="btn-cancel" onclick="closeConfirmModal()" style="padding: 10px 20px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 5px; cursor: pointer;">Annuler</button>
+            <button id="btnConfirmAction" class="btn-save" style="background-color: #e74c3c; width: auto; margin-top: 0;">Supprimer</button>
+        </div>
+
+    </div>
+</div>
+
 
     <script src="js/main.js"></script>
     <script src="js/movies.js"></script>
     <script src="js/series.js"></script>
-    <script src="js/vinyls.js"></script> </body>
+    <script src="js/vinyls.js"></script> 
+</body>
 </html>

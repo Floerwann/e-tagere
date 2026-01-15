@@ -48,7 +48,6 @@ function renderSeriesGrid(list) {
         const overlayBadge = `<div class="poster-overlay ${overlayClass}">${overlayText}</div>`;
 
         // 2. Badges classiques
-        // Badges classiques
         let typeBadge = `<span class="badge" style="background:#e67e22">${s.objectType}</span>`;
         let badges = `<span class="badge ${s.format === '4K' ? 'bg-4k' : s.format === 'BLURAY' ? 'bg-br' : 'bg-dvd'}">${s.format}</span>`;
         
@@ -56,8 +55,6 @@ function renderSeriesGrid(list) {
         if(s.includeDvd) badges += `<span class="badge badge-combo" style="background:#6c757d;">+ DVD</span>`;
         
         if(s.isSteelbook) badges += `<span class="badge bg-steel">Steelbook</span>`;
-        
-        // NOUVELLE LIGNE POUR LE FOURREAU
         if(s.isSlipcover) badges += `<span class="badge" style="background:#34495e;">Fourreau</span>`;
         
         div.innerHTML += `
@@ -77,7 +74,6 @@ function renderSeriesGrid(list) {
 }
 
 function filterSeries() {
-    // ... (Rien ne change ici, garde la fonction existante ou copie celle d'avant)
     const typeVal = document.getElementById('filterSeriesType').value;
     const formatVal = document.getElementById('filterFormat').value;
     const steelbookVal = document.getElementById('filterSteelbook').checked;
@@ -95,21 +91,31 @@ function filterSeries() {
     });
 
     filtered.sort((a, b) => {
-        if (sortVal === 'date_desc') return new Date(b.addedAt) - new Date(a.addedAt);
-        if (sortVal === 'date_asc') return new Date(a.addedAt) - new Date(b.addedAt);
+        if (sortVal === 'date_desc') return b.id - a.id;
+        if (sortVal === 'date_asc') return a.id - b.id;
+        
         if (sortVal === 'alpha_asc') return a.title.localeCompare(b.title);
+        if (sortVal === 'alpha_desc') return b.title.localeCompare(a.title);
+
+        // --- CORRECTION ROBUSTE ANNÉE ---
+        const yearA = a.releaseDate ? parseInt(a.releaseDate.toString().substring(0, 4)) : 0;
+        const yearB = b.releaseDate ? parseInt(b.releaseDate.toString().substring(0, 4)) : 0;
+
+        if (sortVal === 'year_desc') return yearB - yearA;
+        if (sortVal === 'year_asc') return yearA - yearB;
+        
         return 0;
     });
+
     renderSeriesGrid(filtered);
     const count = filtered.length;
-    const label = count > 1 ? 'Séries' : 'Série'; // Singulier ou Pluriel
+    const label = count > 1 ? 'Séries' : 'Série'; 
     const badge = document.getElementById('countBadge');
     if(badge) badge.innerText = `${count} ${label}`;
 }
 
 // --- LOGIQUE D'INTERFACE ---
 
-// Fonction appelée quand on change le menu déroulant
 function toggleSeasonNumberField() {
     const type = document.getElementById('seriesObjectType').value;
     const numberContainer = document.getElementById('seasonNumberContainer');
@@ -140,8 +146,8 @@ function openAddSeriesModal(tmdbData) {
     
     // Reset valeurs
     document.getElementById('seriesObjectType').value = 'INTEGRALE';
-    document.getElementById('seasonNumberInput').value = ''; // Reset numéro
-    toggleSeasonNumberField(); // Appelle la logique pour cacher le champ numéro au départ
+    document.getElementById('seasonNumberInput').value = ''; 
+    toggleSeasonNumberField(); 
 
     document.querySelector(`input[name="format"][value="DVD"]`).checked = true;
     document.getElementById('checkSteelbook').checked = false;
@@ -173,8 +179,8 @@ function openEditSeriesModal(localId) {
     
     // Remplissage des champs
     document.getElementById('seriesObjectType').value = s.objectType;
-    document.getElementById('seasonNumberInput').value = s.seasonNumber || ''; // Remplir le numéro
-    toggleSeasonNumberField(); // Affiche/Cache le champ selon la valeur chargée
+    document.getElementById('seasonNumberInput').value = s.seasonNumber || ''; 
+    toggleSeasonNumberField(); 
 
     document.querySelector(`input[name="format"][value="${s.format}"]`).checked = true;
     document.getElementById('checkIncludeBR').checked = s.includeBluray;
@@ -191,7 +197,6 @@ function openEditSeriesModal(localId) {
 
 async function saveSeries() {
     const objectType = document.getElementById('seriesObjectType').value;
-    // On récupère la valeur du nouveau champ
     const seasonNumber = document.getElementById('seasonNumberInput').value; 
     
     const format = document.querySelector('input[name="format"]:checked').value;
@@ -207,7 +212,7 @@ async function saveSeries() {
     const bodyData = {
         userId: currentUser.id,
         objectType, 
-        seasonNumber, // On l'envoie au serveur
+        seasonNumber, 
         format, includeBluray, includeDvd, isSteelbook, isSlipcover, edition
     };
 
@@ -223,25 +228,43 @@ async function saveSeries() {
         bodyData.backdropPath = currentSeriesMediaData.backdrop_path;
     }
 
-    const res = await fetch(url, {
-        method: method,
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(bodyData)
-    });
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(bodyData)
+        });
 
-    if(res.ok) { 
-        closeModal(); 
-        if(editingMovieId) loadSeries(); else resetView();
-    } else { alert("Erreur sauvegarde série"); }
+        if(res.ok) { 
+            closeModal(); 
+            if(editingMovieId) loadSeries(); else resetView();
+            // NOUVEAU : Notification Toast
+            showToast("Série enregistrée !", "success");
+        } else { 
+            showToast("Erreur lors de la sauvegarde.", "error"); 
+        }
+    } catch(e) {
+        showToast("Erreur de connexion.", "error");
+    }
 }
 
-async function deleteSeries(id) {
-    if(!confirm('Supprimer cette série ?')) return;
-    await fetch(`${API_URL}/series/${id}`, { method: 'DELETE' });
-    loadSeries();
+// SUPPRESSION (Avec belle modale)
+function deleteSeries(id) {
+    openConfirmModal(
+        "Voulez-vous vraiment supprimer cette série de votre collection ?",
+        async () => {
+            try {
+                await fetch(`${API_URL}/series/${id}`, { method: 'DELETE' });
+                resetView();
+                showToast("Série supprimée.", "info");
+            } catch (e) {
+                showToast("Erreur lors de la suppression.", "error");
+            }
+        }
+    );
 }
 
-// Fonction de recherche (tu peux copier celle d'avant, elle ne change pas)
+// Fonction de recherche
 async function searchSeries(query) {
      const div = document.getElementById('myCollection');
     document.getElementById('collectionTitle').innerText = `Résultats Séries "${query}"`;
