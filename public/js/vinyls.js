@@ -40,7 +40,6 @@ function filterVinyls() {
     // --- FONCTION "SHERLOCK" POUR TROUVER L'ANNÉE ---
     function getVinylYear(item) {
         // Liste de tous les endroits possibles où l'année peut se cacher
-        // On convertit tout en texte pour éviter les bugs
         const candidates = [
             item.originalYear,   // Nom qu'on utilise à la sauvegarde
             item.year,           // Nom souvent utilisé par Discogs
@@ -50,18 +49,14 @@ function filterVinyls() {
         ];
 
         for (let val of candidates) {
-            if (!val) continue; // Si vide, on passe au suivant
-
+            if (!val) continue; 
             // On cherche un nombre de 4 chiffres commençant par 19 ou 20
-            // Ex: Trouve "1999" dans "c. 1999" ou "2023-05-01"
             const match = String(val).match(/(19|20)\d{2}/);
-            
             if (match) {
-                return parseInt(match[0]); // On renvoie le chiffre (ex: 1999)
+                return parseInt(match[0]); 
             }
         }
-
-        return 0; // Si on a rien trouvé du tout
+        return 0; 
     }
     // -------------------------------------------------------
 
@@ -79,9 +74,6 @@ function filterVinyls() {
         const yearA = getVinylYear(a);
         const yearB = getVinylYear(b);
 
-        // Si tu veux voir ce qui se passe, fais F12 > Console :
-        // console.log(`Comparaison: ${a.title} (${yearA}) vs ${b.title} (${yearB})`);
-        
         if (sortVal === 'year_desc') return yearB - yearA; // Récent -> Vieux
         if (sortVal === 'year_asc') return yearA - yearB; // Vieux -> Récent
         
@@ -208,14 +200,23 @@ async function openAddVinylModal(discogsItem) {
     document.getElementById('vinylModalImg').src = imgUrl;
     document.getElementById('vinylCoverInput').value = imgUrl;
 
+    // --- MISE A JOUR DU LIEN DISCOGS (COMPLIANCE) ---
+    const discogsLink = document.getElementById('discogsLink');
+    if (discogsLink) {
+        const type = discogsItem.type || 'release';
+        discogsLink.href = `https://www.discogs.com/${type}/${discogsItem.id}`;
+        discogsLink.style.display = 'inline-flex';
+    }
+    // -----------------------------------------------
+
     // B. SÉCURITÉ : ON BLOQUE LE BOUTON PENDANT LE CHARGEMENT 🔒
     const btnSave = document.getElementById('btnSaveVinyl');
     btnSave.innerText = "Recherche des détails...";
-    btnSave.disabled = true;         // Impossible de cliquer
-    btnSave.style.opacity = "0.5";   // Visuellement grisé
+    btnSave.disabled = true;         
+    btnSave.style.opacity = "0.5";   
     btnSave.style.cursor = "not-allowed";
 
-    // Indicateur visuel dans le champ
+    // Indicateur visuel
     document.getElementById('vinylColor').value = "Chargement..."; 
     document.getElementById('vinylFormat').value = "LP";
     
@@ -227,7 +228,7 @@ async function openAddVinylModal(discogsItem) {
             const res = await fetch(`${API_URL}/vinyls/details/${discogsItem.id}`);
             if (res.ok) {
                 const details = await res.json();
-                fillDetailedForm(details, discogsItem); // SUCCÈS : On remplit
+                fillDetailedForm(details, discogsItem); 
                 return; 
             }
         }
@@ -258,7 +259,6 @@ function fillDetailedForm(details, basicItem) {
 
         const rawText = fmt.text || ""; 
         
-        // TA LISTE NOIRE EST ICI
         const ignored = [
             'Vinyl', 'LP', 'Album', 'Reissue', 'Repress', 'Stereo', '33 RPM', '45 RPM',
             'Gatefold', 'Club Edition', 'Remastered', 'Limited Edition', 'Deluxe', 'Enhanced', 'All Media'
@@ -295,7 +295,6 @@ function fillBasicForm(item) {
     document.getElementById('vinylLabel').value = item.label || '';
     document.getElementById('vinylCatNo').value = item.catno || '';
     
-    // ON DÉBLOQUE LE BOUTON
     let artist = item.title.split(' - ')[0];
     enableSaveButton(artist, item.title.split(' - ')[1]);
 }
@@ -304,11 +303,9 @@ function fillBasicForm(item) {
 function enableSaveButton(artist, title) {
     const btnSave = document.getElementById('btnSaveVinyl');
     btnSave.innerText = "Ajouter à ma Discothèque";
-    btnSave.disabled = false;        // Clic autorisé !
-    btnSave.style.opacity = "1";     // Couleur normale
+    btnSave.disabled = false;
+    btnSave.style.opacity = "1";
     btnSave.style.cursor = "pointer";
-    
-    // On attache l'action de sauvegarde
     btnSave.onclick = () => saveVinyl(artist, title);
 }
 
@@ -343,14 +340,24 @@ function openEditVinylModal(localId) {
     document.getElementById('vinylCatNo').value = v.catalogNumber || '';
     document.getElementById('vinylEdition').value = v.edition || '';
 
+    // --- MISE A JOUR DU LIEN DISCOGS (COMPLIANCE) ---
+    const discogsLink = document.getElementById('discogsLink');
+    if (discogsLink) {
+        // 'tmdbId' dans ta BDD vinyles contient l'ID Discogs
+        if (v.tmdbId && v.tmdbId !== 0) {
+            // On pointe vers 'release' par défaut
+            discogsLink.href = `https://www.discogs.com/release/${v.tmdbId}`;
+            discogsLink.style.display = 'inline-flex';
+        } else {
+            discogsLink.style.display = 'none'; // Pas de lien si pas d'ID
+        }
+    }
+    // -----------------------------------------------
+
     // On passe artist/title en paramètre pour la sauvegarde
     document.getElementById('btnSaveVinyl').onclick = () => saveVinyl(v.artist, v.title);
     document.getElementById('vinylModal').style.display = 'flex';
 }
-
-// ==========================================
-// 5. SAUVEGARDE & SUPPRESSION
-// ==========================================
 
 // ==========================================
 // 5. SAUVEGARDE & SUPPRESSION
@@ -374,7 +381,7 @@ async function saveVinyl(artistName, albumTitle) {
         edition: document.getElementById('vinylEdition').value
     };
 
-    // Si AJOUT, on ajoute l'ID Discogs
+    // Si AJOUT, on ajoute l'ID Discogs (stocké dans currentVinylDiscogsData)
     if (!editingVinylId && currentVinylDiscogsData) {
         bodyData.tmdbId = currentVinylDiscogsData.id; 
     }
@@ -397,16 +404,13 @@ async function saveVinyl(artistName, albumTitle) {
         if(res.ok) {
             closeVinylModal();
             
-            // --- CORRECTION ICI ---
             if (editingVinylId) {
-                // Si on modifie, on garde le contexte actuel (filtres, recherche...)
+                // Si on modifie, on garde le contexte
                 loadVinyls(); 
             } else {
-                // Si on vient d'ajouter (depuis la recherche), on remet tout à zéro !
-                // Cela vide la barre de recherche et affiche toute la collection.
+                // Si on vient d'ajouter, on reset pour voir la collection
                 resetView(); 
             }
-            // ---------------------
 
             showToast("Vinyle enregistré avec succès !", "success");
         } else {
@@ -417,7 +421,7 @@ async function saveVinyl(artistName, albumTitle) {
     }
 }
 
-// SUPPRESSION (Avec la belle modale de main.js)
+// SUPPRESSION
 function deleteVinyl(id) {
     openConfirmModal(
         "Voulez-vous vraiment supprimer ce vinyle de votre collection ?", 

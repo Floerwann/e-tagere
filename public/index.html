@@ -84,6 +84,10 @@
                     <input type="text" id="vinylCoverInput" onchange="previewVinylImage()" 
                            style="width: 100%; background: #333; border: 1px solid #555; color: white; padding: 5px; margin-top: 5px; font-size: 0.9em;">
                 </div>
+
+                <a id="discogsLink" href="#" target="_blank" style="font-size: 0.8em; color: #5b9bd5; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; margin-top: 15px;">
+                    <img src="https://cdn.simpleicons.org/discogs/5b9bd5" width="16"> Voir la fiche Discogs
+                </a>
             </div>
 
             <div class="modal-info" style="width: 60%;">
@@ -160,7 +164,12 @@
 
     <div class="sidebar">
         <div class="logo">📦 E-Tagere</div>
-        <div class="menu-item active" onclick="switchTab('movies', this)"><i class="fas fa-film"></i> Films</div>
+
+        <div class="menu-item active" onclick="switchTab('dashboard', this)">
+            <i class="fas fa-chart-pie"></i> Accueil
+        </div>
+
+        <div class="menu-item" onclick="switchTab('movies', this)"><i class="fas fa-film"></i> Films</div>
         <div class="menu-item" onclick="switchTab('series', this)"><i class="fas fa-tv"></i> Séries</div>
         <div class="menu-item" onclick="switchTab('vinyls', this)"><i class="fas fa-record-vinyl"></i> Vinyles</div>
         
@@ -172,6 +181,23 @@
             👤 Connecté : <strong id="usernameDisplay">...</strong>
             <div style="font-size: 0.8em; margin-top:5px; cursor:pointer; color:#d9534f;" onclick="logout()">Se déconnecter</div>
         </div>
+
+        <div class="api-credits" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; font-size: 0.7em; color: #666; text-align: center;">
+        
+        <div style="margin-bottom: 15px;">
+            <img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB Logo" style="width: 60px; margin-bottom: 5px;">
+            <p style="font-size: 0.85em; opacity: 0.7;">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+        </div>
+
+        <div>
+            <img src="https://cdn.simpleicons.org/discogs/white" alt="Discogs Logo" style="width: 25px; margin-bottom: 5px;">
+            <p style="font-size: 0.85em; opacity: 0.7;">Data provided by Discogs.</p>
+        </div>
+
+    </div>
+
+    </div>
+
     </div>
 
 

@@ -33,7 +33,7 @@ router.get('/search', async (req, res) => {
         
         const response = await axios.get(url, {
             headers: { 
-                'User-Agent': 'MyKollekt/1.0', // Obligatoire
+                'User-Agent': 'ETagereApp/1.0', // Obligatoire
                 'Authorization': `Discogs token=${token}` // Authentification simple
             }
         });
@@ -74,7 +74,7 @@ router.get('/details/:id', async (req, res) => {
         
         const response = await axios.get(url, {
             headers: { 
-                'User-Agent': 'MyKollekt/1.0',
+                'User-Agent': 'ETagereApp/1.0',
                 'Authorization': `Discogs token=${token}`
             }
         });

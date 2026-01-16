@@ -1,475 +1,164 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { display: flex; height: 100vh; background-color: #f4f4f9; }
+body { display: flex; height: 100vh; background-color: #f4f4f9; }
 
-        /* --- SIDEBAR --- */
-        .sidebar { width: 250px; background-color: #1e1e2d; color: white; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
-        .logo { font-size: 24px; font-weight: bold; margin-bottom: 40px; color: #5b9bd5; }
-        .menu-item { padding: 15px; cursor: pointer; border-radius: 10px; margin-bottom: 10px; transition: 0.3s; display: flex; align-items: center; gap: 15px; }
-        .menu-item:hover { background-color: #2b2b40; }
-        .menu-item.active { background-color: #5b9bd5; color: white; }
-        .user-profile { margin-top: auto; padding-top: 20px; border-top: 1px solid #333; font-size: 0.9em; color: #aaa; }
+/* --- SIDEBAR --- */
+.sidebar { width: 250px; background-color: #1e1e2d; color: white; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
+.logo { font-size: 24px; font-weight: bold; margin-bottom: 40px; color: #5b9bd5; }
+.menu-item { padding: 15px; cursor: pointer; border-radius: 10px; margin-bottom: 10px; transition: 0.3s; display: flex; align-items: center; gap: 15px; }
+.menu-item:hover { background-color: #2b2b40; }
+.menu-item.active { background-color: #5b9bd5; color: white; }
+.user-profile { margin-top: auto; padding-top: 20px; border-top: 1px solid #333; font-size: 0.9em; color: #aaa; }
 
-        /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .top-bar { background: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .search-container { flex: 1; margin: 0 20px; display: flex; gap: 10px; }
-        .search-container input { padding: 10px; border-radius: 20px; border: 1px solid #ddd; width: 100%; max-width: 400px; background: #f9f9f9; }
-        .btn-search { padding: 0 20px; border-radius: 20px; border: none; background: #5b9bd5; color: white; cursor: pointer; transition: 0.2s; }
-        .btn-collection { padding: 0 20px; border-radius: 20px; border: 1px solid #ddd; background: white; color: #333; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: 0.2s; }
-        .content-area { padding: 30px; overflow-y: auto; flex: 1; }
-        
-        /* --- TOOLBAR --- */
-        .toolbar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .toolbar select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; cursor: pointer; }
-        .toolbar label { font-size: 0.9em; cursor: pointer; display: flex; align-items: center; gap: 5px; user-select: none; }
-        .count-badge {
-    /* Style de la pastille (Joli et arrondi) */
-    background-color: #5b9bd5;
-    color: white;
-    padding: 8px 15px;
-    border-radius: 20px; /* Forme de pilule */
-    font-weight: bold;
-    font-size: 0.9em;
-    white-space: nowrap; /* Empêche le texte de se couper */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+/* --- MAIN CONTENT --- */
+.main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.top-bar { background: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.search-container { flex: 1; margin: 0 20px; display: flex; gap: 10px; }
+.search-container input { padding: 10px; border-radius: 20px; border: 1px solid #ddd; width: 100%; max-width: 400px; background: #f9f9f9; }
+.btn-search { padding: 0 20px; border-radius: 20px; border: none; background: #5b9bd5; color: white; cursor: pointer; transition: 0.2s; }
+.btn-collection { padding: 0 20px; border-radius: 20px; border: 1px solid #ddd; background: white; color: #333; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: 0.2s; }
+.content-area { padding: 30px; overflow-y: auto; flex: 1; }
 
-    /* MAGIE FLEXBOX */
-    /* Comme il est en dernier, margin-left: auto le pousse tout seul à droite */
-    margin-left: auto; 
-    
-    display: block; /* Important pour que le margin fonctionne bien */
+/* --- TOOLBAR --- */
+.toolbar { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.toolbar select { padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; cursor: pointer; }
+.toolbar label { font-size: 0.9em; cursor: pointer; display: flex; align-items: center; gap: 5px; user-select: none; }
+.count-badge {
+    background-color: #5b9bd5; color: white; padding: 8px 15px; border-radius: 20px;
+    font-weight: bold; font-size: 0.9em; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-left: auto; display: block;
 }
 
-        /* --- CARTES --- */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; position: relative; }
-        .card:hover { transform: translateY(-5px); }
-        /* --- STYLE GÉNÉRAL DES IMAGES (Films & Séries) --- */
-        .card img { 
-            width: 100%; 
-            height: auto;           /* La hauteur s'adapte automatiquement */
-            aspect-ratio: 2 / 3;    /* 📏 FORCE LE FORMAT AFFICHE DE CINÉMA (Portrait) */
-            object-fit: cover;      /* Remplit bien la carte sans déformer l'image */
-            cursor: pointer; 
-            border-bottom: 1px solid #eee; /* Petite séparation propre avec le texte */
-        }
-        .card-body { padding: 10px; }
-        .card-title { font-weight: bold; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        /* Boutons d'action sur la carte */
-        .card-actions { display: flex; gap: 5px; margin-top: 10px; }
-        .btn-action { flex: 1; border: none; padding: 5px; border-radius: 3px; cursor: pointer; color: white; font-size: 0.8em; }
-        .btn-edit { background: #f39c12; }
-        .btn-delete { background: #ff4d4d; }
+/* --- CARTES --- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px; }
+.card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; position: relative; }
+.card:hover { transform: translateY(-5px); }
 
-        /* --- BADGES --- */
-        .badge-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
-        .badge { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; color: white; }
-        .bg-4k { background: #333; border: 1px solid gold; color: gold; }
-        .bg-br { background: #007bff; }
-        .bg-dvd { background: #6c757d; }
-        .bg-steel { background: linear-gradient(45deg, #bdc3c7, #2c3e50); }
-        .bg-custom { background: #8e44ad; } 
-        .badge-combo { font-size: 0.6em; opacity: 0.9; } 
+/* IMAGES */
+.card img { 
+    width: 100%; height: auto; aspect-ratio: 2 / 3; object-fit: cover;
+    cursor: pointer; border-bottom: 1px solid #eee;
+}
+.card .vinyl-cover-img { aspect-ratio: 1 / 1; } /* Vinyle Carré */
 
-        /* --- MODALE --- */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; justify-content: center; align-items: center; }
-        .modal { background: white; width: 90%; max-width: 800px; max-height: 90vh; border-radius: 10px; display: flex; overflow: hidden; position: relative; }
-        .modal-poster { width: 40%; object-fit: cover; }
-        .modal-info { padding: 30px; width: 60%; overflow-y: auto; }
-        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #333; background: none; border: none; }
-        .form-group { margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
-        .radio-group { display: flex; gap: 15px; margin: 10px 0; }
-        .checkbox-group { margin: 5px 0; display: flex; gap: 20px; }
-        .btn-save { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
-    /* =========================================
+.card-body { padding: 10px; }
+.card-title { font-weight: bold; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ACTIONS */
+.card-actions { display: flex; gap: 5px; margin-top: 10px; }
+.btn-action { flex: 1; border: none; padding: 5px; border-radius: 3px; cursor: pointer; color: white; font-size: 0.8em; }
+.btn-edit { background: #f39c12; }
+.btn-delete { background: #ff4d4d; }
+
+/* --- BADGES & OVERLAYS --- */
+.badge-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.badge { font-size: 0.7em; padding: 2px 6px; border-radius: 4px; color: white; }
+.bg-4k { background: #333; border: 1px solid gold; color: gold; }
+.bg-br { background: #007bff; }
+.bg-dvd { background: #6c757d; }
+.bg-steel { background: linear-gradient(45deg, #bdc3c7, #2c3e50); }
+
+.poster-overlay {
+    position: absolute; top: 5px; left: 5px; background: rgba(0, 0, 0, 0.8);
+    color: white; font-size: 10px; font-weight: bold; padding: 2px 6px;
+    border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); z-index: 5;
+}
+.overlay-INT { background: #e67e22; }
+.overlay-SAISON { background: #3498db; }
+.overlay-COFFRET { background: #9b59b6; }
+
+/* --- DASHBOARD (ACCUEIL) - GLOBAL --- */
+.dashboard-stats {
+    display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; width: 100%;
+}
+.stat-card {
+    flex: 1; min-width: 200px; padding: 20px; border-radius: 12px; color: white;
+    display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s; cursor: pointer;
+}
+.stat-card:hover { transform: translateY(-5px); }
+.stat-card i { font-size: 2.5em; opacity: 0.8; }
+.stat-info h3 { font-size: 1.1em; font-weight: normal; opacity: 0.9; margin-bottom: 5px; }
+.stat-info p { font-size: 2em; font-weight: bold; margin: 0; line-height: 1; }
+
+.stat-movies { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.stat-series { background: linear-gradient(135deg, #3498db, #2980b9); }
+.stat-vinyls { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+/* Force la grille du dashboard */
+#myCollection .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px; width: 100%; margin-top: 20px;
+}
+
+/* --- MODALES --- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; justify-content: center; align-items: center; }
+.modal { background: white; width: 90%; max-width: 800px; max-height: 90vh; border-radius: 10px; display: flex; overflow: hidden; position: relative; }
+.modal-poster { width: 40%; object-fit: cover; }
+.modal-info { padding: 30px; width: 60%; overflow-y: auto; }
+.close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #333; background: none; border: none; }
+.form-group { margin-top: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
+.radio-group { display: flex; gap: 15px; margin: 10px 0; }
+.checkbox-group { margin: 5px 0; display: flex; gap: 20px; }
+.btn-save { background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; }
+
+/* --- TOASTS --- */
+#toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; }
+.toast { background: #333; color: white; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; font-weight: 500; animation: slideIn 0.3s forwards; }
+.toast.success { background: #2ecc71; }
+.toast.error   { background: #e74c3c; }
+.toast.info    { background: #3498db; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
+
+/* =========================================
    📱 VERSION MOBILE (RESPONSIVE)
    ========================================= */
-
 @media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; flex-direction: row; justify-content: space-around; padding: 10px; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.2); }
+    .sidebar .logo, .sidebar .user-profile { display: none; }
+    .menu-item { flex-direction: column; font-size: 0.75em; gap: 5px; padding: 5px; background: transparent !important; color: #888; }
+    .menu-item i { font-size: 1.4em; }
+    .menu-item.active { color: #5b9bd5; }
 
-    /* 1. LAYOUT GÉNÉRAL */
-    body {
-        flex-direction: column; /* On empile verticalement */
-    }
+    .main-content { width: 100%; padding-bottom: 80px; }
+    .content-area { padding: 15px; }
+    .top-bar { flex-direction: column; gap: 15px; padding: 15px; }
+    .top-bar h2 { display: none; }
+    .search-container { width: 100%; margin: 0; }
+    .btn-collection { padding: 0 12px; font-size: 0; }
+    .btn-collection i { font-size: 16px; margin: 0; }
+    .btn-collection::after { content: "Coll."; font-size: 12px; margin-left: 5px; }
 
-    /* 2. TRANSFORMATION DU MENU EN BARRE DU BAS */
-    .sidebar {
-        position: fixed; /* Collé à l'écran */
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 70px; /* Hauteur de barre d'app */
-        flex-direction: row; /* Icônes côte à côte */
-        justify-content: space-around; /* Espacement égal */
-        padding: 10px;
-        z-index: 1000; /* Toujours au-dessus */
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-    }
+    /* FILTRES MOBILE */
+    .btn-filter-mobile { display: block; width: 100%; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; text-align: left; }
+    .toolbar { display: none !important; flex-direction: column; padding: 15px; gap: 15px; background: #f8f9fa; }
+    .toolbar.mobile-open { display: grid !important; grid-template-columns: 1fr 1fr; animation: slideDown 0.3s; }
+    .toolbar select, .toolbar label { width: 100%; grid-column: span 1; }
+    #sortSelect, .toolbar label { grid-column: span 2; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* On cache le logo et le profil pour gagner de la place */
-    .sidebar .logo, 
-    .sidebar .user-profile {
-        display: none;
-    }
-
-    /* Style des boutons du menu mobile */
-    .menu-item {
-        flex-direction: column; /* Icône au-dessus du texte */
-        font-size: 0.75em; /* Texte plus petit */
-        gap: 5px;
-        padding: 5px;
-        margin: 0;
-        text-align: center;
-        background: transparent !important; /* Pas de fond bleu */
-        color: #888;
-    }
-    .menu-item i {
-        font-size: 1.4em; /* Icône plus grosse */
-        margin-bottom: 2px;
-    }
-    .menu-item.active {
-        color: #5b9bd5; /* Couleur active juste sur le texte/icône */
-    }
-
-    /* 3. CONTENU PRINCIPAL */
-    .main-content {
-        width: 100%;
-        padding-bottom: 80px; /* Marge pour ne pas être caché par la barre du bas */
-    }
-
-    .content-area {
-        padding: 15px; /* Moins de marge sur les côtés */
-    }
-
-    /* 4. BARRE DU HAUT (RECHERCHE) */
-    .top-bar {
-        flex-direction: column; /* Empiler titre et recherche */
-        gap: 15px;
-        padding: 15px;
-    }
-    .top-bar h2 {
-        display: none; /* On cache le titre "Mes Films" pour gagner de la place */
-    }
-    .search-container {
-        width: 100%;
-        margin: 0;
-        display: flex;
-        gap: 8px;
-    }
-    .search-container input {
-        flex: 1; /* L'input prend toute la place dispo */
-    }
-    /* Le bouton "Ma Collection" devient juste une icône ou plus petit */
-    .btn-collection {
-        padding: 0 12px;
-        font-size: 0; /* On cache le texte "Ma Collection" */
-    }
-    .btn-collection i {
-        font-size: 16px; /* On garde l'icône */
-        margin: 0;
-    }
-    /* On force l'affichage de l'icône même si font-size est 0 sur le parent */
-    .btn-collection::after {
-        content: "Coll."; 
-        font-size: 12px;
-        margin-left: 5px;
-    }
-
-    /* 5. TOOLBAR (FILTRES) */
-    .toolbar {
-        flex-wrap: nowrap; /* Pas de passage à la ligne */
-        overflow-x: auto; /* Scroll horizontal si ça dépasse */
-        padding-bottom: 10px; /* Espace pour la scrollbar */
-        gap: 10px;
-    }
-    /* Cache esthétique de la scrollbar */
-    .toolbar::-webkit-scrollbar { display: none; }
+    /* GRILLE MOBILE */
+    .grid { grid-template-columns: repeat(4, 1fr) !important; gap: 6px; }
+    .card { background: transparent; box-shadow: none; }
+    .card img { border-radius: 6px; }
+    .card-body { padding: 4px 0 !important; text-align: center; }
+    .card-title, .card-actions { display: none !important; }
+    .badge-container { justify-content: center; gap: 2px; }
+    .badge { font-size: 8px !important; padding: 2px 4px !important; }
     
-    /* ... DANS LA SECTION MOBILE ... */
+    .count-badge { width: 100%; text-align: center; margin-left: 0; margin-bottom: 10px; order: -1; }
 
-    .count-badge {
-        width: 100%;
-        text-align: center;
-        margin-left: 0; /* On annule l'effet "droite" sur mobile */
-        margin-bottom: 10px;
-        order: -1; /* IMPÉRATIF : Ça remonte le compteur tout en haut visuellement */
-    }
+    /* MODALE MOBILE */
+    .modal { width: 100%; height: 100%; border-radius: 0; flex-direction: column; overflow-y: auto; }
+    .modal-poster { width: 100%; height: 300px; object-position: top; flex-shrink: 0; }
+    .modal-info { width: 100%; padding-bottom: 120px !important; }
+    .close-modal { background: white; border-radius: 50%; width: 40px; height: 40px; top: 10px; right: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
 
-    /* 6. GRILLE (4 colonnes avec Badges) */
-    .grid {
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 6px; /* Espace fin entre les cartes */
-    }
-
-    .card {
-        background: transparent; /* Enlève le fond blanc pour alléger */
-        box-shadow: none;        /* Enlève l'ombre */
-    }
-
-    .card img {
-        height: auto !important;
-        aspect-ratio: 2/3;
-        border-radius: 6px;
-    }
-
-    /* ON RÉAFFICHE LE CORPS DE LA CARTE */
-    .card-body {
-        display: block !important; /* On le montre ! */
-        padding: 4px 0 !important; /* Un peu d'espace haut/bas */
-        text-align: center;        /* Tout centrer */
-    }
-
-    /* MAIS ON CACHE LE TITRE ET LES BOUTONS (Pas la place) */
-    .card-title, 
-    .card-actions {
-        display: none !important; 
-    }
-
-    /* ON OPTIMISE LES BADGES POUR QU'ILS TIENNENT */
-    .badge-container {
-        display: flex !important;
-        justify-content: center; /* Centré */
-        flex-wrap: wrap;         /* Si ça dépasse, ça va à la ligne */
-        gap: 2px;                /* Tout petit écart */
-    }
-
-    .badge {
-        font-size: 8px !important;    /* Texte minuscule mais lisible */
-        padding: 2px 4px !important;  /* Marges internes réduites */
-        border-radius: 3px;
-        line-height: 1;               /* Interligne compact */
-        display: inline-block;
-    }
-
-    /* 7. MODALE STYLE "BANNIÈRE" */
-    
-    /* 7. MODALE MOBILE (Version Validée : Affiche Verticale + Formulaire Blanc) */
-    .modal {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        max-width: 100%;
-        border-radius: 0;
-        display: flex !important;
-        flex-direction: column;
-        overflow-y: auto;
-        background: white;
-    }
-
-    .modal-poster {
-        width: 100%;
-        height: 300px; /* Affiche verticale bien visible */
-        object-fit: cover;
-        object-position: top;
-        flex-shrink: 0;
-    }
-
-    .modal-info {
-        width: 100%;
-        padding: 20px;
-        padding-bottom: 120px !important; /* Espace pour le menu du bas */
-        background: white;
-    }
-
-    .close-modal {
-        background: white;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        top: 10px;
-        right: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: absolute;
-    }
+    /* LOGOUT MOBILE */
+    .mobile-logout { display: flex !important; color: #d9534f !important; }
 }
 
-/* --- GESTION DU BOUTON QUITTER --- */
-
-/* 1. Sur PC (par défaut) : On le cache */
-.mobile-logout {
-    display: none !important;
-}
-
-/* 2. Sur Mobile : On l'affiche */
-@media (max-width: 768px) {
-    .mobile-logout {
-        display: flex !important; /* On force l'affichage */
-        color: #d9534f !important; /* En rouge pour qu'on le remarque */
-    }
-    
-    /* On s'assure que le profil texte reste bien caché */
-    .user-profile {
-        display: none !important;
-    }
-}
-
-/* =========================================
-   🎨 GESTION DES FILTRES MOBILE
-   ========================================= */
-
-/* Par défaut (PC) : Le bouton mobile est caché */
-.btn-filter-mobile {
-    display: none;
-}
-
-/* Sur Mobile uniquement */
-@media (max-width: 768px) {
-    
-    /* 1. Le bouton "Filtrer & Trier" */
-    .btn-filter-mobile {
-        display: block;
-        width: 100%;
-        padding: 12px;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        color: #555;
-        font-weight: bold;
-        margin-bottom: 15px;
-        cursor: pointer;
-        text-align: left;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-    .btn-filter-mobile i { margin-right: 8px; color: #5b9bd5; }
-
-    /* 2. La Toolbar (Filtres) */
-    .toolbar {
-        display: none !important; /* Caché par défaut malgré le style inline JS */
-        flex-direction: column; /* On empile tout */
-        padding: 15px;
-        gap: 15px;
-        background: #f8f9fa; /* Fond gris clair pour distinguer */
-        border: 1px solid #eee;
-    }
-
-    /* 3. L'état "OUVERT" */
-    .toolbar.mobile-open {
-        display: grid !important; /* On force l'affichage en grille */
-        grid-template-columns: 1fr 1fr; /* 2 colonnes */
-        gap: 10px;
-        animation: slideDown 0.3s ease-out;
-    }
-
-    /* Les éléments prennent toute la largeur de leur case */
-    .toolbar select {
-        width: 100%;
-        padding: 10px; /* Plus facile à toucher au doigt */
-        height: 45px;
-    }
-
-    /* Le tri (Date/Alpha) prend toute la largeur (2 colonnes) */
-    #sortSelect {
-        grid-column: span 2; 
-    }
-
-    /* La checkbox Steelbook prend aussi toute la largeur */
-    .toolbar label {
-        grid-column: span 2;
-        padding: 10px;
-        background: white;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        justify-content: center;
-    }
-
-    /* Animation d'ouverture fluide */
-    @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-}
-
-/* =========================================
-   🚑 CORRECTIF : MODALE vs MENU BAS
-   ========================================= */
-
-/* 1. La modale doit être LA PLUS HAUTE priorité */
-.modal-overlay {
-    z-index: 2000 !important; /* 2000 > 1000 (menu) -> La modale passe devant */
-}
-
-/* 2. Espace de sécurité pour le scroll sur mobile */
-@media (max-width: 768px) {
-    .modal-info {
-        /* On ajoute une grosse marge en bas à l'intérieur de la modale */
-        padding-bottom: 100px !important; 
-    }
-}
-
-/* --- PASTILLE TYPE SÉRIE (Overlay sur l'image) --- */
-.poster-overlay {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    background: rgba(0, 0, 0, 0.8); /* Fond noir transparent */
-    color: white;
-    font-size: 10px;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.3);
-    z-index: 5;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-/* Couleurs spécifiques selon le type */
-.overlay-INT { background: #e67e22; } /* Orange pour Intégrale */
-.overlay-SAISON { background: #3498db; } /* Bleu pour Saison */
-.overlay-COFFRET { background: #9b59b6; } /* Violet pour Coffret */
-
-/* --- STYLE SPÉCIFIQUE VINYLES --- */
-
-/* --- FORMAT VINYLE CARRÉ --- */
-.card .vinyl-cover-img {
-    height: auto !important; /* Annule la hauteur fixe des films (240px) */
-    aspect-ratio: 1 / 1;     /* Force le ratio carré parfait (Largeur = Hauteur) */
-    width: 100%;             /* Prend toute la largeur de la carte */
-    object-fit: cover;       /* Remplit bien le carré */
-    border-bottom: 1px solid #eee; /* Petite séparation esthétique avec le bas */
-}
-
-/* --- NOTIFICATIONS TOAST --- */
-#toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.toast {
-    background: #333;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 500;
-    min-width: 280px;
-    animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; /* Petit effet rebond */
-}
-
-/* Couleurs selon le type */
-.toast.success { background: #2ecc71; } /* Vert Émeraude */
-.toast.error   { background: #e74c3c; } /* Rouge */
-.toast.info    { background: #3498db; } /* Bleu */
-
-.toast i { font-size: 1.2em; }
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-    to { opacity: 0; transform: translateX(100%); }
-}
+/* PC par défaut */
+.btn-filter-mobile { display: none; }
+.mobile-logout { display: none !important; }

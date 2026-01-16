@@ -3,47 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - MyKollekt</title>
+    <title>Connexion - E-Tagere</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* On remet juste le CSS nécessaire pour le login */
-        body { font-family: sans-serif; background-color: #1e1e2d; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .auth-box { background: white; padding: 40px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .auth-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        .auth-box button { width: 100%; padding: 10px; background: #5b9bd5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;}
-        .switch-link { margin-top: 15px; font-size: 0.9em; color: #666; cursor: pointer; text-decoration: underline; }
+        /* --- CORRECTION CSS --- */
+        * { box-sizing: border-box; } /* Règle importante pour éviter les dépassements */
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #121212; 
+            color: white;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background-image: radial-gradient(circle at top right, #2c3e50 0%, #121212 40%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .auth-box { 
+            background: #1e1e2d; 
+            padding: 40px; 
+            border-radius: 15px; 
+            text-align: center; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border: 1px solid #333;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+            color: #5b9bd5;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        h2 { margin-top: 0; font-weight: normal; color: #ddd; font-size: 1.2em; margin-bottom: 25px; }
+
+        /* INPUTS STYLISÉS */
+        .input-group { position: relative; margin-bottom: 15px; }
+        
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            z-index: 10; /* Pour être sûr que l'icône est au dessus */
+        }
+
+        .auth-box input { 
+            width: 100%; 
+            padding: 12px 15px 12px 40px; /* Espace à gauche pour l'icône */
+            background: #2b2b40; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            color: white;
+            font-size: 0.95em;
+            outline: none;
+            transition: 0.3s;
+            box-sizing: border-box; /* <--- LA CORRECTION EST ICI */
+        }
+
+        .auth-box input:focus {
+            border-color: #5b9bd5;
+            box-shadow: 0 0 8px rgba(91, 155, 213, 0.2);
+        }
+
+        /* BOUTON D'ACTION */
+        .auth-box button { 
+            width: 100%; 
+            padding: 12px; 
+            background: linear-gradient(135deg, #5b9bd5, #4a8ac0); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: bold;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        .auth-box button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(91, 155, 213, 0.3); }
+        .auth-box button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        /* LIENS ET ERREURS */
+        .switch-link { margin-top: 20px; font-size: 0.9em; color: #888; cursor: pointer; transition: 0.3s; }
+        .switch-link:hover { color: #5b9bd5; text-decoration: underline; }
+
+        .error-msg {
+            color: #e74c3c;
+            font-size: 0.85em;
+            margin-top: 10px;
+            display: none; 
+            background: rgba(231, 76, 60, 0.1);
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
-    <div id="loginBox" class="auth-box">
-        <h2 style="color:#333;">Bienvenue 👋</h2>
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPass" placeholder="Mot de passe">
-        <button onclick="handleLogin()">Connexion</button>
-        <p class="switch-link" onclick="toggleAuth('register')">Pas de compte ? Créer un compte</p>
-    </div>
+    <div class="auth-container">
+        <div id="loginBox" class="auth-box">
+            <div class="logo">📦 E-Tagere</div>
+            <h2>Bon retour parmi nous !</h2>
+            
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="loginEmail" placeholder="Adresse Email">
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="loginPass" placeholder="Mot de passe">
+            </div>
 
-    <div id="registerBox" class="auth-box" style="display:none;">
-        <h2 style="color:#333;">Inscription</h2>
-        <input type="text" id="regUser" placeholder="Ton Pseudo">
-        <input type="email" id="regEmail" placeholder="Email">
-        <input type="password" id="regPass" placeholder="Mot de passe">
-        <button onclick="handleRegister()">Créer mon compte</button>
-        <p class="switch-link" onclick="toggleAuth('login')">Déjà un compte ? Se connecter</p>
+            <div id="loginError" class="error-msg"></div>
+
+            <button id="btnLogin" onclick="handleLogin()">Se connecter</button>
+            <p class="switch-link" onclick="toggleAuth('register')">Pas encore de compte ? <b>Créer un compte</b></p>
+        </div>
+
+        <div id="registerBox" class="auth-box" style="display:none;">
+            <div class="logo">📦 E-Tagere</div>
+            <h2>Créer ma collection</h2>
+
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="regUser" placeholder="Pseudo (Nom d'affichage)">
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="regEmail" placeholder="Adresse Email">
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="regPass" placeholder="Mot de passe">
+            </div>
+
+            <div id="regError" class="error-msg"></div>
+
+            <button id="btnRegister" onclick="handleRegister()">Créer mon compte</button>
+            <p class="switch-link" onclick="toggleAuth('login')">Déjà membre ? <b>Se connecter</b></p>
+        </div>
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = '/api';
 
         function toggleAuth(mode) {
-            document.getElementById('loginBox').style.display = (mode === 'login') ? 'block' : 'none';
-            document.getElementById('registerBox').style.display = (mode === 'register') ? 'block' : 'none';
+            const loginBox = document.getElementById('loginBox');
+            const regBox = document.getElementById('registerBox');
+
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('regError').style.display = 'none';
+            
+            if (mode === 'login') {
+                regBox.style.display = 'none';
+                loginBox.style.display = 'block';
+                loginBox.style.animation = 'none';
+                loginBox.offsetHeight; 
+                loginBox.style.animation = 'fadeIn 0.5s ease-out';
+            } else {
+                loginBox.style.display = 'none';
+                regBox.style.display = 'block';
+                regBox.style.animation = 'none';
+                regBox.offsetHeight; 
+                regBox.style.animation = 'fadeIn 0.5s ease-out';
+            }
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.innerText = message;
+            el.style.display = 'block';
         }
 
         async function handleLogin() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPass').value;
-            
+            const btn = document.getElementById('btnLogin');
+
+            if(!email || !password) return showError('loginError', "Merci de remplir tous les champs.");
+
+            btn.disabled = true;
+            btn.innerText = "Connexion...";
+
             try {
                 const res = await fetch(`${API_URL}/login`, {
                     method: 'POST',
@@ -53,22 +213,32 @@
 
                 if(res.ok) {
                     const user = await res.json();
-                    // 1. On sauvegarde l'utilisateur
                     localStorage.setItem('myAppUser', JSON.stringify(user));
-                    // 2. LA REDIRECTION : On change de page !
                     window.location.href = '/index.html'; 
                 } else {
-                    alert("Email ou mot de passe incorrect");
+                    const data = await res.json();
+                    showError('loginError', data.error || "Email ou mot de passe incorrect");
+                    btn.disabled = false;
+                    btn.innerText = "Se connecter";
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e);
+                showError('loginError', "Impossible de joindre le serveur.");
+                btn.disabled = false;
+                btn.innerText = "Se connecter";
+            }
         }
 
         async function handleRegister() {
             const username = document.getElementById('regUser').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPass').value;
+            const btn = document.getElementById('btnRegister');
 
-            if(!username || !email || !password) return alert("Remplis tout !");
+            if(!username || !email || !password) return showError('regError', "Tous les champs sont obligatoires.");
+
+            btn.disabled = true;
+            btn.innerText = "Création...";
 
             try {
                 const res = await fetch(`${API_URL}/register`, {
@@ -80,16 +250,26 @@
                 const data = await res.json();
 
                 if(res.ok) {
-                    alert("Compte créé avec succès ! Connecte-toi maintenant.");
-                    toggleAuth('login'); // On renvoie l'utilisateur vers la connexion
+                    alert("Compte créé avec succès ! Connecte-toi."); 
+                    toggleAuth('login');
+                    document.getElementById('loginEmail').value = email; 
                 } else {
-                    alert("Erreur : " + data.error);
+                    showError('regError', data.error || "Erreur lors de l'inscription.");
                 }
             } catch (e) {
-                console.error(e);
-                alert("Erreur de connexion au serveur");
+                showError('regError', "Erreur serveur.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Créer mon compte";
             }
         }
+        
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                if(document.getElementById('loginBox').style.display !== 'none') handleLogin();
+                else handleRegister();
+            }
+        });
     </script>
 </body>
 </html>
