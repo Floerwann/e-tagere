@@ -6,13 +6,14 @@ async function loadSeries() {
     document.getElementById('collectionTitle').style.display = 'block';
 
     try {
-        const res = await fetch(`${API_URL}/series?userId=${currentUser.id}`);
-        allSeriesData = await res.json();
-        filterSeries();
+        const res = await authFetch(`${API_URL}/series`);
+        if(res) {
+            allSeriesData = await res.json();
+            filterSeries();
+        }
     } catch (e) { console.error("Erreur load series", e); }
 }
 
-// --- FONCTION D'AFFICHAGE INTELLIGENT (Avec le nouveau champ) ---
 function renderSeriesGrid(list) {
     const div = document.getElementById('myCollection');
     div.innerHTML = '';
@@ -23,7 +24,6 @@ function renderSeriesGrid(list) {
     }
 
     list.forEach(s => {
-        // 1. Calcul du texte de la pastille (Overlay)
         let overlayText = "";
         let overlayClass = "";
 
@@ -37,23 +37,20 @@ function renderSeriesGrid(list) {
         }
         else if (s.objectType === 'SAISON') {
             overlayClass = "overlay-SAISON";
-            // NOUVEAU : On utilise le champ seasonNumber propre !
             if (s.seasonNumber !== null && s.seasonNumber !== undefined) { 
                 overlayText = "S" + s.seasonNumber; 
             } else {
-                overlayText = "S?"; // Si pas de numéro renseigné
+                overlayText = "S?";
             }
         }
 
         const overlayBadge = `<div class="poster-overlay ${overlayClass}">${overlayText}</div>`;
 
-        // 2. Badges classiques
         let typeBadge = `<span class="badge" style="background:#e67e22">${s.objectType}</span>`;
         let badges = `<span class="badge ${s.format === '4K' ? 'bg-4k' : s.format === 'BLURAY' ? 'bg-br' : 'bg-dvd'}">${s.format}</span>`;
         
         if(s.includeBluray) badges += `<span class="badge badge-combo" style="background:#007bff;">+ BR</span>`;
         if(s.includeDvd) badges += `<span class="badge badge-combo" style="background:#6c757d;">+ DVD</span>`;
-        
         if(s.isSteelbook) badges += `<span class="badge bg-steel">Steelbook</span>`;
         if(s.isSlipcover) badges += `<span class="badge" style="background:#34495e;">Fourreau</span>`;
         
@@ -93,11 +90,9 @@ function filterSeries() {
     filtered.sort((a, b) => {
         if (sortVal === 'date_desc') return b.id - a.id;
         if (sortVal === 'date_asc') return a.id - b.id;
-        
         if (sortVal === 'alpha_asc') return a.title.localeCompare(b.title);
         if (sortVal === 'alpha_desc') return b.title.localeCompare(a.title);
 
-        // --- CORRECTION ROBUSTE ANNÉE ---
         const yearA = a.releaseDate ? parseInt(a.releaseDate.toString().substring(0, 4)) : 0;
         const yearB = b.releaseDate ? parseInt(b.releaseDate.toString().substring(0, 4)) : 0;
 
@@ -114,18 +109,14 @@ function filterSeries() {
     if(badge) badge.innerText = `${count} ${label}`;
 }
 
-// --- LOGIQUE D'INTERFACE ---
-
 function toggleSeasonNumberField() {
     const type = document.getElementById('seriesObjectType').value;
     const numberContainer = document.getElementById('seasonNumberContainer');
-    
-    // Si c'est SAISON, on affiche le champ numéro. Sinon on cache.
     if (type === 'SAISON') {
         numberContainer.style.display = 'block';
     } else {
         numberContainer.style.display = 'none';
-        document.getElementById('seasonNumberInput').value = ''; // On vide si on cache
+        document.getElementById('seasonNumberInput').value = ''; 
     }
 }
 
@@ -141,10 +132,8 @@ function openAddSeriesModal(tmdbData) {
     document.getElementById('modalImg').src = `https://image.tmdb.org/t/p/w780${imagePath}`;
     document.getElementById('modalOverview').innerText = tmdbData.overview || '';
     document.getElementById('modalYear').innerText = tmdbData.release_date ? tmdbData.release_date.split('-')[0] : '';
-
     document.getElementById('seriesTypeSection').style.display = 'block';
     
-    // Reset valeurs
     document.getElementById('seriesObjectType').value = 'INTEGRALE';
     document.getElementById('seasonNumberInput').value = ''; 
     toggleSeasonNumberField(); 
@@ -154,7 +143,6 @@ function openAddSeriesModal(tmdbData) {
     document.getElementById('editionInput').value = '';
     
     updateComboOptions();
-    
     document.getElementById('btnSaveMovie').onclick = saveSeries;
     document.getElementById('movieModal').style.display = 'flex';
 }
@@ -171,13 +159,10 @@ function openEditSeriesModal(localId) {
     document.getElementById('btnSaveMovie').innerText = "Mettre à jour";
     const imagePath = s.backdropPath || s.posterPath;
     document.getElementById('modalImg').src = `https://image.tmdb.org/t/p/w780${imagePath}`;
-
     document.getElementById('modalOverview').innerText = s.overview || '';
     document.getElementById('modalYear').innerText = s.releaseDate ? s.releaseDate.split('-')[0] : '';
-
     document.getElementById('seriesTypeSection').style.display = 'block';
     
-    // Remplissage des champs
     document.getElementById('seriesObjectType').value = s.objectType;
     document.getElementById('seasonNumberInput').value = s.seasonNumber || ''; 
     toggleSeasonNumberField(); 
@@ -190,7 +175,6 @@ function openEditSeriesModal(localId) {
     document.getElementById('editionInput').value = s.edition || '';
     
     updateComboOptions();
-    
     document.getElementById('btnSaveMovie').onclick = saveSeries;
     document.getElementById('movieModal').style.display = 'flex';
 }
@@ -198,7 +182,6 @@ function openEditSeriesModal(localId) {
 async function saveSeries() {
     const objectType = document.getElementById('seriesObjectType').value;
     const seasonNumber = document.getElementById('seasonNumberInput').value; 
-    
     const format = document.querySelector('input[name="format"]:checked').value;
     const includeBluray = document.getElementById('checkIncludeBR').checked;
     const includeDvd = document.getElementById('checkIncludeDVD').checked;
@@ -210,9 +193,7 @@ async function saveSeries() {
     let method = 'POST';
     
     const bodyData = {
-        userId: currentUser.id,
-        objectType, 
-        seasonNumber, 
+        objectType, seasonNumber, 
         format, includeBluray, includeDvd, isSteelbook, isSlipcover, edition
     };
 
@@ -229,16 +210,15 @@ async function saveSeries() {
     }
 
     try {
-        const res = await fetch(url, {
+        const res = await authFetch(url, {
             method: method,
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(bodyData)
         });
 
-        if(res.ok) { 
+        if(res && res.ok) { 
             closeModal(); 
             if(editingMovieId) loadSeries(); else resetView();
-            // NOUVEAU : Notification Toast
             showToast("Série enregistrée !", "success");
         } else { 
             showToast("Erreur lors de la sauvegarde.", "error"); 
@@ -248,15 +228,16 @@ async function saveSeries() {
     }
 }
 
-// SUPPRESSION (Avec belle modale)
 function deleteSeries(id) {
     openConfirmModal(
         "Voulez-vous vraiment supprimer cette série de votre collection ?",
         async () => {
             try {
-                await fetch(`${API_URL}/series/${id}`, { method: 'DELETE' });
-                resetView();
-                showToast("Série supprimée.", "info");
+                const res = await authFetch(`${API_URL}/series/${id}`, { method: 'DELETE' });
+                if (res && res.ok) {
+                    resetView();
+                    showToast("Série supprimée.", "info");
+                }
             } catch (e) {
                 showToast("Erreur lors de la suppression.", "error");
             }
@@ -264,29 +245,29 @@ function deleteSeries(id) {
     );
 }
 
-// Fonction de recherche
 async function searchSeries(query) {
      const div = document.getElementById('myCollection');
     document.getElementById('collectionTitle').innerText = `Résultats Séries "${query}"`;
     div.innerHTML = '<p>Recherche en cours...</p>';
 
     try {
-        const res = await fetch(`${API_URL}/series/search?q=${query}`);
-        const results = await res.json();
-        div.innerHTML = '';
-
-        results.forEach(item => {
-            if(!item.poster_path) return;
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.onclick = () => openAddSeriesModal(item);
-            card.innerHTML = `
-                <img src="https://image.tmdb.org/t/p/w500${item.poster_path}">
-                <div class="card-body" style="background:#f4f4f4">
-                    <div class="card-title">${item.title}</div>
-                    <div style="font-size:0.8em; color:#666; margin-top:5px;">Ajouter Série</div>
-                </div>`;
-            div.appendChild(card);
-        });
+        const res = await authFetch(`${API_URL}/series/search?q=${query}`);
+        if(res) {
+            const results = await res.json();
+            div.innerHTML = '';
+            results.forEach(item => {
+                if(!item.poster_path) return;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openAddSeriesModal(item);
+                card.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${item.poster_path}">
+                    <div class="card-body" style="background:#f4f4f4">
+                        <div class="card-title">${item.title}</div>
+                        <div style="font-size:0.8em; color:#666; margin-top:5px;">Ajouter Série</div>
+                    </div>`;
+                div.appendChild(card);
+            });
+        }
     } catch (e) { div.innerHTML = '<p>Erreur.</p>'; }
 }

@@ -1,6 +1,6 @@
 let allMoviesData = [];
 let currentMovieMediaData = null; 
-let editingMovieId = null; // Variable globale pour savoir si on modifie ou ajoute
+let editingMovieId = null;
 
 // CHARGEMENT
 async function loadMovies() {
@@ -8,9 +8,12 @@ async function loadMovies() {
     document.getElementById('collectionTitle').style.display = 'block';
 
     try {
-        const res = await fetch(`${API_URL}/movies?userId=${currentUser.id}`);
-        allMoviesData = await res.json();
-        filterMovies(); // On filtre direct pour afficher
+        // PLUS DE userId DANS L'URL, C'EST AUTOMATIQUE !
+        const res = await authFetch(`${API_URL}/movies`);
+        if(res) {
+            allMoviesData = await res.json();
+            filterMovies();
+        }
     } catch (e) { console.error("Erreur load movies", e); }
 }
 
@@ -23,15 +26,9 @@ function renderMoviesGrid(list) {
 
     list.forEach(m => {
         let badges = `<span class="badge ${m.format === '4K' ? 'bg-4k' : m.format === 'BLURAY' ? 'bg-br' : 'bg-dvd'}">${m.format}</span>`;
-        
-        // Les Combos
         if(m.includeBluray) badges += `<span class="badge badge-combo" style="background:#007bff;">+ BR</span>`;
         if(m.includeDvd) badges += `<span class="badge badge-combo" style="background:#6c757d;">+ DVD</span>`;
-
-        // Les Finitions
         if(m.isSteelbook) badges += `<span class="badge bg-steel">Steelbook</span>`;
-        
-        // NOUVELLE LIGNE POUR LE FOURREAU (Gris Anthracite)
         if(m.isSlipcover) badges += `<span class="badge" style="background:#34495e;">Fourreau</span>`;
 
         const imgSrc = m.posterPath ? `https://image.tmdb.org/t/p/w500${m.posterPath}` : 'https://via.placeholder.com/500x750';
@@ -63,65 +60,58 @@ function filterMovies() {
         let matchesFormat = (formatVal === 'all') ? true : (m.format === formatVal);
         if (formatVal === 'BLURAY' && (m.includeBluray || m.format === '4K')) matchesFormat = true; 
         if (formatVal === 'DVD' && m.includeDvd) matchesFormat = true;
-        
         const matchesSteel = steelbookVal ? m.isSteelbook : true;
         return matchesSearch && matchesFormat && matchesSteel;
     });
 
-    // Tri
     filtered.sort((a, b) => {
-        // Tri par Date d'ajout (ID)
         if (sortVal === 'date_desc') return b.id - a.id;
         if (sortVal === 'date_asc') return a.id - b.id;
-        
-        // Tri Alphabétique
         if (sortVal === 'alpha_asc') return a.title.localeCompare(b.title);
         if (sortVal === 'alpha_desc') return b.title.localeCompare(a.title);
-
-        // --- CORRECTION ROBUSTE ANNÉE ---
-        // On prend les 4 premiers chiffres (ex: "2023-05-12" -> 2023)
-        // Si pas de date, on met 0
+        
         const yearA = a.releaseDate ? parseInt(a.releaseDate.toString().substring(0, 4)) : 0;
         const yearB = b.releaseDate ? parseInt(b.releaseDate.toString().substring(0, 4)) : 0;
 
-        if (sortVal === 'year_desc') return yearB - yearA; // Du plus grand au plus petit
-        if (sortVal === 'year_asc') return yearA - yearB; // Du plus petit au plus grand
+        if (sortVal === 'year_desc') return yearB - yearA; 
+        if (sortVal === 'year_asc') return yearA - yearB; 
         
         return 0;
     });
 
     renderMoviesGrid(filtered);
     const count = filtered.length;
-    const label = count > 1 ? 'Films' : 'Film'; // Singulier ou Pluriel
+    const label = count > 1 ? 'Films' : 'Film'; 
     const badge = document.getElementById('countBadge');
     if(badge) badge.innerText = `${count} ${label}`;
 }
 
-// RECHERCHE API TMDB
+// RECHERCHE API TMDB (SÉCURISÉE)
 async function searchMovies(query) {
     const div = document.getElementById('myCollection');
     document.getElementById('collectionTitle').innerText = `Résultats pour "${query}"`;
     div.innerHTML = '<p>Recherche en cours...</p>';
 
     try {
-        const res = await fetch(`${API_URL}/movies/search?q=${query}`);
-        const results = await res.json();
-        div.innerHTML = ''; // On vide
+        const res = await authFetch(`${API_URL}/movies/search?q=${query}`);
+        if(res) {
+            const results = await res.json();
+            div.innerHTML = ''; 
 
-        results.forEach(movie => {
-            if(!movie.poster_path) return;
-            const card = document.createElement('div');
-            card.className = 'card';
-            // Clic sur l'affiche -> Ouvre Modale AJOUT
-            card.onclick = () => openAddModal(movie); 
-            card.innerHTML = `
-                <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}">
-                <div class="card-body" style="background:#f4f4f4">
-                    <div class="card-title">${movie.title}</div>
-                    <div style="font-size:0.8em; color:#666; margin-top:5px;">Clique pour ajouter</div>
-                </div>`;
-            div.appendChild(card);
-        });
+            results.forEach(movie => {
+                if(!movie.poster_path) return;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openAddModal(movie); 
+                card.innerHTML = `
+                    <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}">
+                    <div class="card-body" style="background:#f4f4f4">
+                        <div class="card-title">${movie.title}</div>
+                        <div style="font-size:0.8em; color:#666; margin-top:5px;">Clique pour ajouter</div>
+                    </div>`;
+                div.appendChild(card);
+            });
+        }
     } catch (e) { div.innerHTML = '<p>Erreur recherche.</p>'; }
 }
 
@@ -138,11 +128,8 @@ function openAddModal(movieTmdb) {
     document.getElementById('modalImg').src = `https://image.tmdb.org/t/p/w780${imagePath}`;
     document.getElementById('modalOverview').innerText = movieTmdb.overview || '';
     document.getElementById('modalYear').innerText = movieTmdb.release_date ? movieTmdb.release_date.split('-')[0] : '';
-
-    // CACHER option Série
     document.getElementById('seriesTypeSection').style.display = 'none';
 
-    // Reset Form
     document.querySelector(`input[name="format"][value="BLURAY"]`).checked = true; 
     document.getElementById('checkSteelbook').checked = false;
     document.getElementById('editionInput').value = '';
@@ -150,7 +137,6 @@ function openAddModal(movieTmdb) {
     document.getElementById('checkIncludeDVD').checked = false;
     
     updateComboOptions();
-
     document.getElementById('btnSaveMovie').onclick = saveMovie;
     document.getElementById('movieModal').style.display = 'flex';
 }
@@ -170,7 +156,6 @@ function openEditModal(localId) {
 
     document.getElementById('modalOverview').innerText = m.overview || '';
     document.getElementById('modalYear').innerText = m.releaseDate ? m.releaseDate.split('-')[0] : '';
-
     document.getElementById('seriesTypeSection').style.display = 'none';
 
     document.querySelector(`input[name="format"][value="${m.format}"]`).checked = true;
@@ -181,7 +166,6 @@ function openEditModal(localId) {
     document.getElementById('editionInput').value = m.edition || '';
 
     updateComboOptions();
-    
     document.getElementById('btnSaveMovie').onclick = saveMovie;
     document.getElementById('movieModal').style.display = 'flex';
 }
@@ -197,8 +181,8 @@ async function saveMovie() {
     let url = `${API_URL}/movies`;
     let method = 'POST';
 
+    // ON RETIRE userId, c'est le serveur qui gère !
     const bodyData = {
-        userId: currentUser.id,
         format, includeBluray, includeDvd, isSteelbook, isSlipcover, edition
     };
 
@@ -215,16 +199,15 @@ async function saveMovie() {
     }
 
     try {
-        const res = await fetch(url, {
+        const res = await authFetch(url, {
             method: method,
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(bodyData)
         });
 
-        if(res.ok) {
+        if(res && res.ok) {
             closeModal();
             if(editingMovieId) loadMovies(); else resetView();
-            // NOUVEAU : Notification Toast
             showToast("Film enregistré avec succès !", "success");
         } else { 
             showToast("Erreur lors de la sauvegarde.", "error");
@@ -234,15 +217,17 @@ async function saveMovie() {
     }
 }
 
-// SUPPRESSION (Avec belle modale)
+// SUPPRESSION (SÉCURISÉE)
 function deleteMovie(id) {
     openConfirmModal(
         "Voulez-vous vraiment supprimer ce film de votre collection ?", 
         async () => {
             try {
-                await fetch(`${API_URL}/movies/${id}`, { method: 'DELETE' });
-                resetView();
-                showToast("Film supprimé.", "info");
+                const res = await authFetch(`${API_URL}/movies/${id}`, { method: 'DELETE' });
+                if(res && res.ok) {
+                    resetView();
+                    showToast("Film supprimé.", "info");
+                }
             } catch (e) {
                 showToast("Erreur lors de la suppression.", "error");
             }

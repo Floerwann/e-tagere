@@ -6,8 +6,7 @@
     <title>Connexion - E-Tagere</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- CORRECTION CSS --- */
-        * { box-sizing: border-box; } /* Règle importante pour éviter les dépassements */
+        * { box-sizing: border-box; }
 
         body { 
             font-family: 'Segoe UI', sans-serif; 
@@ -47,7 +46,6 @@
 
         h2 { margin-top: 0; font-weight: normal; color: #ddd; font-size: 1.2em; margin-bottom: 25px; }
 
-        /* INPUTS STYLISÉS */
         .input-group { position: relative; margin-bottom: 15px; }
         
         .input-group i {
@@ -56,12 +54,12 @@
             top: 50%;
             transform: translateY(-50%);
             color: #666;
-            z-index: 10; /* Pour être sûr que l'icône est au dessus */
+            z-index: 10;
         }
 
         .auth-box input { 
             width: 100%; 
-            padding: 12px 15px 12px 40px; /* Espace à gauche pour l'icône */
+            padding: 12px 15px 12px 40px;
             background: #2b2b40; 
             border: 1px solid #333; 
             border-radius: 8px; 
@@ -69,7 +67,7 @@
             font-size: 0.95em;
             outline: none;
             transition: 0.3s;
-            box-sizing: border-box; /* <--- LA CORRECTION EST ICI */
+            box-sizing: border-box;
         }
 
         .auth-box input:focus {
@@ -77,7 +75,6 @@
             box-shadow: 0 0 8px rgba(91, 155, 213, 0.2);
         }
 
-        /* BOUTON D'ACTION */
         .auth-box button { 
             width: 100%; 
             padding: 12px; 
@@ -94,10 +91,10 @@
         .auth-box button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(91, 155, 213, 0.3); }
         .auth-box button:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-        /* LIENS ET ERREURS */
         .switch-link { margin-top: 20px; font-size: 0.9em; color: #888; cursor: pointer; transition: 0.3s; }
         .switch-link:hover { color: #5b9bd5; text-decoration: underline; }
 
+        /* --- MESSAGES D'ERREUR (ROUGE) --- */
         .error-msg {
             color: #e74c3c;
             font-size: 0.85em;
@@ -106,6 +103,20 @@
             background: rgba(231, 76, 60, 0.1);
             padding: 8px;
             border-radius: 5px;
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+
+        /* --- NOUVEAU : MESSAGE DE SUCCÈS (VERT) --- */
+        .success-msg {
+            color: #2ecc71;
+            font-size: 0.9em;
+            margin-bottom: 20px; /* Espace avant le formulaire */
+            display: none; 
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            animation: fadeIn 0.3s;
         }
 
         @keyframes fadeIn {
@@ -121,6 +132,8 @@
             <div class="logo">📦 E-Tagere</div>
             <h2>Bon retour parmi nous !</h2>
             
+            <div id="loginSuccess" class="success-msg"></div>
+
             <div class="input-group">
                 <i class="fas fa-envelope"></i>
                 <input type="email" id="loginEmail" placeholder="Adresse Email">
@@ -170,8 +183,15 @@
             const loginBox = document.getElementById('loginBox');
             const regBox = document.getElementById('registerBox');
 
+            // Reset des messages quand on change d'onglet
             document.getElementById('loginError').style.display = 'none';
             document.getElementById('regError').style.display = 'none';
+            
+            // Si on change manuellement, on cache le message de succès s'il était là
+            // Sauf si on vient juste de créer le compte (géré plus bas)
+            if(mode === 'register') {
+                document.getElementById('loginSuccess').style.display = 'none';
+            }
             
             if (mode === 'login') {
                 regBox.style.display = 'none';
@@ -199,6 +219,9 @@
             const password = document.getElementById('loginPass').value;
             const btn = document.getElementById('btnLogin');
 
+            // On cache le succès précédent s'il y en avait un
+            document.getElementById('loginSuccess').style.display = 'none';
+
             if(!email || !password) return showError('loginError', "Merci de remplir tous les champs.");
 
             btn.disabled = true;
@@ -212,8 +235,9 @@
                 });
 
                 if(res.ok) {
-                    const user = await res.json();
-                    localStorage.setItem('myAppUser', JSON.stringify(user));
+                    const data = await res.json();
+                    localStorage.setItem('myAppUser', JSON.stringify(data.user));
+                    localStorage.setItem('myAppToken', data.token); 
                     window.location.href = '/index.html'; 
                 } else {
                     const data = await res.json();
@@ -250,9 +274,20 @@
                 const data = await res.json();
 
                 if(res.ok) {
-                    alert("Compte créé avec succès ! Connecte-toi."); 
+                    // --- SUCCÈS : PLUS D'ALERT ---
+                    
+                    // 1. On bascule sur l'onglet Login
                     toggleAuth('login');
-                    document.getElementById('loginEmail').value = email; 
+                    
+                    // 2. On pré-remplit l'email pour l'utilisateur
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('loginPass').focus();
+
+                    // 3. On affiche un joli message vert dans la box Login
+                    const successDiv = document.getElementById('loginSuccess');
+                    successDiv.innerHTML = '<i class="fas fa-check-circle"></i> Compte créé avec succès ! Connecte-toi.';
+                    successDiv.style.display = 'block';
+
                 } else {
                     showError('regError', data.error || "Erreur lors de l'inscription.");
                 }

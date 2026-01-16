@@ -3,17 +3,61 @@
 // ==========================================
 
 const API_URL = '/api';
+
+// On garde l'utilisateur en cache juste pour l'affichage du nom ("Bonjour X")
 const storedUser = localStorage.getItem('myAppUser');
-const currentUser = storedUser ? JSON.parse(storedUser) : { id: 1, name: "Invité" };
+const currentUser = storedUser ? JSON.parse(storedUser) : { id: 0, name: "Invité" };
 
 let currentTab = 'dashboard'; 
+
+// --- FONCTION MAGIQUE POUR LES REQUÊTES SÉCURISÉES ---
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('myAppToken');
+    
+    // On prépare les headers
+    if (!options.headers) options.headers = {};
+    
+    // On ajoute le Token (Le passeport)
+    if (token) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Si on envoie du JSON, on précise le type
+    if (!(options.body instanceof FormData) && !options.headers['Content-Type']) {
+        options.headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(url, options);
+
+    // Si le serveur répond 401 ou 403 (Token invalide/expiré)
+    if (response.status === 401 || response.status === 403) {
+        logout(); // On déconnecte l'utilisateur
+        return null;
+    }
+
+    return response;
+}
 
 // --- 1. INITIALISATION ---
 
 function initApp() {
     console.log("🚀 Application démarrée");
+    
+    // Vérification de sécurité
+    if (!localStorage.getItem('myAppToken')) {
+        window.location.href = '/login.html';
+        return;
+    }
+
+    // 1. Mise à jour du nom dans le menu
     const userDisplay = document.getElementById('usernameDisplay');
     if(userDisplay) userDisplay.innerText = currentUser.username || currentUser.name;
+
+    // 2. NOUVEAU : On force le titre "Bonjour X" dès l'arrivée !
+    const pageTitle = document.querySelector('.top-bar h2');
+    if(pageTitle) {
+        pageTitle.innerText = `Bonjour ${currentUser.username || 'Invité'} !`;
+    }
 
     const searchInput = document.getElementById('searchInput');
     if(searchInput) {
@@ -30,11 +74,18 @@ function initApp() {
 function switchTab(tab, element) {
     currentTab = tab;
 
+    // --- CORRECTION : ON VIDE LA RECHERCHE ICI ---
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = ''; 
+    }
+    // ---------------------------------------------
+
     document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
     if (element) element.classList.add('active');
 
     const titles = { 
-        'dashboard': `Bonjour ${currentUser.name || 'Invité'} !`,
+        'dashboard': `Bonjour ${currentUser.username || 'Invité'} !`,
         'movies': 'Mes Films', 
         'series': 'Mes Séries', 
         'vinyls': 'Mes Vinyles' 
@@ -81,26 +132,36 @@ function loadContent() {
     }
 }
 
-// --- 3. LE DASHBOARD (CORRIGÉ) ---
+// --- 3. LE DASHBOARD (SÉCURISÉ) ---
+
+// --- 3. LE DASHBOARD (SÉCURISÉ) ---
 
 async function loadDashboard() {
     try {
+        // 1. On force le titre H3 à revenir sur "Ma Collection"
+        const collectionTitle = document.getElementById('collectionTitle');
+        if (collectionTitle) {
+            collectionTitle.innerText = "Ma Collection";
+            collectionTitle.style.display = 'block'; // On s'assure qu'il est visible
+        }
+
+        // 2. Chargement des données
         const [resMovies, resSeries, resVinyls] = await Promise.all([
-            fetch(`${API_URL}/movies?userId=${currentUser.id}`),
-            fetch(`${API_URL}/series?userId=${currentUser.id}`),
-            fetch(`${API_URL}/vinyls?userId=${currentUser.id}`)
+            authFetch(`${API_URL}/movies`),
+            authFetch(`${API_URL}/series`),
+            authFetch(`${API_URL}/vinyls`)
         ]);
+
+        if (!resMovies || !resSeries || !resVinyls) return; 
 
         const movies = await resMovies.json();
         const series = await resSeries.json();
         const vinyls = await resVinyls.json();
 
-        // --- CORRECTION 1 : On met à jour les variables globales ---
-        // Cela permet aux fonctions "openEditModal" de retrouver les données
+        // Mise à jour variables globales
         if(typeof allMoviesData !== 'undefined') allMoviesData = movies;
         if(typeof allSeriesData !== 'undefined') allSeriesData = series;
         if(typeof allVinylsData !== 'undefined') allVinylsData = vinyls;
-        // -----------------------------------------------------------
 
         // HTML Stats
         const htmlStats = `
@@ -140,14 +201,11 @@ async function loadDashboard() {
 
         const allItems = [...movies, ...series, ...vinyls];
 
-        // --- CORRECTION 2 : Tri par DATE (et pas par ID) ---
-        // On essaie de prendre addedAt, sinon createdAt, sinon on met une date par défaut
         allItems.sort((a, b) => {
             const dateA = new Date(a.addedAt || a.createdAt || 0);
             const dateB = new Date(b.addedAt || b.createdAt || 0);
-            return dateB - dateA; // Du plus récent au plus vieux
+            return dateB - dateA; 
         });
-        // ---------------------------------------------------
 
         const latestItems = allItems.slice(0, 6);
 
@@ -332,6 +390,7 @@ window.onclick = function(event) {
 
 function logout() {
     localStorage.removeItem('myAppUser');
+    localStorage.removeItem('myAppToken'); // On supprime aussi le token
     window.location.href = '/login.html';
 }
 
